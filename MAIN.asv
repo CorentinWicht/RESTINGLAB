@@ -277,8 +277,7 @@ for k=1:length(TempSubjectslist)
         
         % This will detect files for which there is no data to analyze
         if sum(cell2mat(ProcessData(k,:)))<1
-%             SubjectsRemoved(t) = TempSubjectslist(k);
-            SubjectsRemovedIdx(t) = k;
+            SubjectsRemoved(t) = TempSubjectslist(k);
             t=t+1;
             break
         end
@@ -286,8 +285,8 @@ for k=1:length(TempSubjectslist)
 end
 
 % Removing lines from Conditions_Order (if completely excluded)
-if exist('SubjectsRemovedIdx','var')
-    Conditions_OrderCell(SubjectsRemovedIdx,:)=[];
+if exist('SubjectsRemoved','var')
+    Conditions_OrderCell(SubjectsRemoved,:)=[];
 end
 
 % Building the subjects selection list based on GUI data
@@ -1480,12 +1479,33 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                 for t=1:length(FieldsAreas)
                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
                 end
+                                     
+                % Adjusting data according to electrodes included in analysis
+%                 if ~isempty(AllElectrodes)
+%                     SpectOutputsStruc.Data = structfun(@(x) x(AllElectrodes),...
+%                         SpectOutputsStruc.Data,'UniformOutput',0);
+%                 end
+                
+%                 % Finding the area with max electrode-mean amplitude
+%                 for m=1:size(FreqNames,1)
+%                     [ClustAmpStruct.MaxClust(m,:), ClustAmpStruct.MaxIdx(m,:)] = ...
+%                         max(SpectOutputsStruc.Data.(FreqNames{m}));
+% %                         structfun(@(x) max(x),SpectOutputsStruc.Data,'UniformOutput',0);
+%                     ClustAmpStruct.MaxIdx(m,:) = AllElectrodes(ClustAmpStruct.MaxIdx(m,:));
+% 
+%                     % Finding the area with min electrode-mean amplitude
+%                     [ClustAmpStruct.MinClust(m,:), ClustAmpStruct.MinIdx(m,:)] = ...
+%                          min(SpectOutputsStruc.Data.(FreqNames{m}));
+% %                         structfun(@(x) min(x),SpectOutputsStruc.Data,'UniformOutput',0);
+%                     ClustAmpStruct.MinIdx(m,:) = AllElectrodes(ClustAmpStruct.MinIdx(m,:));
+%                 end
 
                 % Finding the electrodes-cluster with max/min amplitude
                 for m=1:size(FreqNames,1)
                     for f=1:length(FieldsAreas)
                         [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
                     end
+                    
                 end
                 
         %----------------------% AMPLITUDE TABLES %-------------------------------%            
