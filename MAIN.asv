@@ -162,7 +162,7 @@ end
 if strcmpi(ICA,'Yes') && isempty(AnswerICA)
    AnswerICA = {'2000'}; % Default 
 end
-if str2double(AnswerBLINKER{1})
+if str2double(AnswerBLINKER{1}) == 1
     AnswerBLINKER = 'reject';
 else
     AnswerBLINKER = 'interp';
@@ -277,7 +277,8 @@ for k=1:length(TempSubjectslist)
         
         % This will detect files for which there is no data to analyze
         if sum(cell2mat(ProcessData(k,:)))<1
-            SubjectsRemoved(t) = TempSubjectslist(k);
+%             SubjectsRemoved(t) = TempSubjectslist(k);
+            SubjectsRemovedIdx(t) = k;
             t=t+1;
             break
         end
@@ -285,8 +286,8 @@ for k=1:length(TempSubjectslist)
 end
 
 % Removing lines from Conditions_Order (if completely excluded)
-if exist('SubjectsRemoved','var')
-    Conditions_OrderCell(SubjectsRemoved,:)=[];
+if exist('SubjectsRemovedIdx','var')
+    Conditions_OrderCell(SubjectsRemovedIdx,:)=[];
 end
 
 % Building the subjects selection list based on GUI data
@@ -579,162 +580,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 'pad',PromptCleanLine{7},'plotfigures',0,'scanforlines',1,'sigtype','Channels',...
                 'tau',PromptCleanLine{6},'verb',1,'winsize',PromptCleanLine{5},'winstep',PromptCleanLine{4});
             close gcf;
-            
-            % Saving data for visual comparision below
-            OriginalEEG = EEG;
-           
-            % BLINKER
-            if strcmpi(BLINKER,'Yes')
-                                      
-                % Waitbar updating 
-                WaitBarApp.Title = '1. PREPROCESSING: BLINKER';
-                
-                % Setting parameters
-                Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
-                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond)];
-                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond) '_blinks.mat'];
-                Params.showMaxDistribution = true;
-                Params.verbose = false;
-                Params.fieldList = {'leftBase','rightBase'};
-%                 Params.fieldList = {'maxFrame', 'leftZero', 'rightZero', 'leftBase',...
-%                 'rightBase', 'leftZeroHalfHeight', 'rightZeroHalfHeight'};
-                
-                % Run BLINKER algorithm
-                try
-                    [EEG, ~, ~, blinkFits] = pop_blinker(EEG, Params);
-                    close gcf;fprintf('%d blinks identified by BLINKER\n',length(blinkFits));
-                catch
-                    disp('0 blink identified by BLINKER\n');
-                end
-
-                % Add the blinks to EEG.event
-%                 [EEG, ~] = addBlinkEvents(EEG, blinks, blinkFits,...
-%                     blinkProperties, Params.fieldList);
-%                 
-                % Storing the boundaries of each blink
-%                 Events = {EEG.event.type};
-%                 Pos=1;AbsLatency = [];
-%                 for f=1:length(Events)
-%                     if ~isnumeric(Events{f})
-%                         if strcmpi(Events{f},'leftBase') && ...
-%                                 strcmpi(Events{f+1},'rightBase') 
-%                            AbsLatency(Pos,:) = [EEG.event(f).latency ... 
-%                                EEG.event(f).latency]; Pos = Pos + 1;
-%                         end
-%                     else
-%                         EEG.event(f).type = num2str(EEG.event(f).type);
-%                         EEG.urevent(f).type = num2str(EEG.urevent(f).type);
-%                     end
-%                 end
-                
-                % Other method
-                for m=1:length(blinkFits)
-                    AbsLatency(m,:) = [blinkFits(m).leftBase blinkFits(m).rightBase];
-                end
-                
-                if strcmpi(AnswerBLINKER,'reject')
-                    
-                    % Removing the data containing blinks
-                    EEG = eeg_eegrej(EEG, AbsLatency);
-                end
-            end
-            
-            % Waitbar updating 
-            WaitBarApp.Title = '1. PREPROCESSING: ASR';
-            
-            % ARTIFACT SUBSPACE RECONSTRUCTION (ASR)
-            % Automated bad channels detection and non-stationary noise removal
-            % Christian's method (http://sccn.ucsd.edu/eeglab/plugins/ASR.pdf)
-            % Non-stationary artifacts removal
-            if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp')
-                
-                % 1) ASR 1st run
-                % ASR settings
-                asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
-                BurstCriterion = 1;asr_stepsize = [];
-                maxdims = 1;availableRAM_GB = [];usegpu = false;
-
-                % Creating a clean reference section
-                EEGCleanRef = clean_windows(EEG,0.075,[-3.5 5.5],1); 
-
-               %  Building the Blink EEG dataset
-                BlinkEEG = EEG; BlinkEEG.data = zeros(size(EEG.data));
-                for p=1:size(AbsLatency,1)
-                    BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
-                        EEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
-                end
-            
-                % Calibrate on the reference data
-                state = asr_calibrate(EEGCleanRef.data, EEGCleanRef.srate,...
-                    BurstCriterion, [], [], [], [], [], [], [], 'availableRAM_GB', availableRAM_GB);
-
-                % Extrapolate last few samples of the signal
-                sig = [BlinkEEG.data bsxfun(@minus,2*BlinkEEG.data(:,end),...
-                    BlinkEEG.data(:,(end-1):-1:end-round(asr_windowlen/2*BlinkEEG.srate)))];
-                
-                % Process signal using ASR
-                [BlinkEEG.data,state] = asr_process(sig,BlinkEEG.srate,state,...
-                    asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,availableRAM_GB,usegpu);
-                
-                % Shift signal content back (to compensate for processing delay)
-                BlinkEEG.data(:,1:size(state.carry,2)) = [];
-
-                % Replace original data with the Blink corrected data
-                NEWEEG = EEG;
-                for p=1:size(AbsLatency,1)
-                    NEWEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
-                        BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
-                end
-
-                % Allows for visual inspection of old/new EEG (Optional)
-                if strcmpi(Automaticity,'Yes')
-                    vis_artifacts(NEWEEG,EEG);
-                    disp('Ignore errors above !!');
-                    % Holds the figure until inspection is over
-                    Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
-                    uiwait(Fig);
-                    close gcf
-                end 
-                
-                % Replace artifact data
-                EEG.data = NEWEEG.data;
-            end
-            
-            if strcmpi(ASR,'Yes') 
-                
-                % 2) ASR second run
-                EEG = clean_rawdata(EEG, -1, -1, -1, -1, str2double(AnswerASR{1}), str2double(AnswerASR{2}));          
-
-                % Removing the events that were created by ASR (may be useless)
-                Eventfields = {'event','urevent'};
-                for p=1:2
-                    if ~isempty(EEG.(Eventfields{p}))
-                        if sum(cellfun(@(x) ischar(x),{EEG.(Eventfields{p}).type})) == length({EEG.(Eventfields{p}).type})
-                            IdxX = contains({EEG.(Eventfields{p}).type},'X'); 
-                            IdxBound = contains({EEG.(Eventfields{p}).type},'boundary');
-                            EEG.(Eventfields{p})(or(IdxX,IdxBound))=[];
-                        else
-                            for t=1:length({EEG.(Eventfields{p}).type})
-                               if ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'X')...
-                                       || ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'boundary') || ...
-                                       EEG.(Eventfields{p})(t).type==255
-                                   EEG.(Eventfields{p})(t)=[];
-                               end
-                            end
-                        end
-                    end
-                end
-
-                % Allows for visual inspection of old/new EEG (Optional)
-                if strcmpi(Automaticity,'Yes')
-                    vis_artifacts(EEG,OriginalEEG);
-                    disp('Ignore errors above !!');
-                    % Holds the figure until inspection is over
-                    Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
-                    uiwait(Fig);
-                    close gcf
-                end 
-            end
 
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
     %                    INTERPOLATION/CHANNELS REJECTION
@@ -769,6 +614,159 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 break
             end
             
+            % Visual check before/after interpolation
+            if strcmpi(Automaticity,'Yes')==1
+                vis_artifacts(EEG,OriginalEEG);
+            % Holds the figure until inspection is over
+                Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
+                uiwait(Fig);
+                close gcf
+            end
+                    
+            % Saving data for visual comparision below
+            OriginalEEG = EEG;
+           
+            % Waitbar updating 
+            WaitBarApp.Title = '1. PREPROCESSING: ASR';
+            
+            % ARTIFACT SUBSPACE RECONSTRUCTION (ASR)
+            % Automated bad channels detection and non-stationary noise removal
+            % Christian's method (http://sccn.ucsd.edu/eeglab/plugins/ASR.pdf)
+            % Non-stationary artifacts removal
+            
+            % Fixing the maximum available memory enhances reproducibility
+            MaxMemory = round(hlp_memfree()/2000000000);
+ 
+            if strcmpi(ASR,'Yes') 
+                
+                % ASR 
+                EEG = clean_rawdata(EEG, -1, -1, -1, -1, str2double(AnswerASR{1}),...
+                    str2double(AnswerASR{2}),'availableRAM_GB', MaxMemory);          
+
+                % Removing the events that were created by ASR (may be useless)
+                Eventfields = {'event','urevent'};
+                for p=1:2
+                    if ~isempty(EEG.(Eventfields{p}))
+                        if sum(cellfun(@(x) ischar(x),{EEG.(Eventfields{p}).type})) == length({EEG.(Eventfields{p}).type})
+                            IdxX = contains({EEG.(Eventfields{p}).type},'X'); 
+                            IdxBound = contains({EEG.(Eventfields{p}).type},'boundary');
+                            EEG.(Eventfields{p})(or(IdxX,IdxBound))=[];
+                        else
+                            for t=1:length({EEG.(Eventfields{p}).type})
+                               if ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'X')...
+                                       || ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'boundary') || ...
+                                       EEG.(Eventfields{p})(t).type==255
+                                   EEG.(Eventfields{p})(t)=[];
+                               end
+                            end
+                        end
+                    end
+                end
+
+                % Allows for visual inspection of old/new EEG (Optional)
+                if strcmpi(Automaticity,'Yes')
+                    vis_artifacts(EEG,OriginalEEG);
+                    disp('Ignore errors above !!');
+                    % Holds the figure until inspection is over
+                    Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
+                    uiwait(Fig);
+                    close gcf
+                end 
+            end
+
+            % BLINKER: EYE BLINKS REMOVAL
+            if strcmpi(BLINKER,'Yes')
+                
+                % Waitbar updating 
+                WaitBarApp.Title = '1. PREPROCESSING: BLINKER';
+
+                % Setting parameters
+                Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
+                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond)];
+                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond) '_blinks.mat'];
+                Params.showMaxDistribution = true;
+                Params.verbose = false;
+                Params.fieldList = {'leftBase','rightBase'};
+                
+                % Run BLINKER algorithm
+                try
+                    [EEG, ~, blinks, blinkFits,blinkProperties] = pop_blinker(EEG, Params);
+                    close gcf;fprintf('%d blinks identified by BLINKER\n',length(blinkFits));
+                catch
+                    disp('0 blink identified by BLINKER\n');
+                end
+                
+%                 % Add the blinks to EEG.event
+                [EEG, ~] = addBlinkEvents(EEG, blinks, blinkFits,...
+                    blinkProperties, Params.fieldList);
+                eegplot(EEG.data,'events',EEG.event,'winlength',30)
+
+                % Retrieve blinks latency
+                for m=1:length(blinkFits)
+                    AbsLatency(m,:) = [blinkFits(m).leftBase blinkFits(m).rightBase];
+                end
+                
+                if strcmpi(AnswerBLINKER,'reject')
+                    
+                    % Removing the data containing blinks
+                    EEG = eeg_eegrej(EEG, AbsLatency);
+                end
+            end
+
+            if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp')
+                
+                % 1) ASR 1st run
+                % ASR settings
+                asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
+                BurstCriterion = 1;asr_stepsize = [];
+                maxdims = 1;usegpu = false;
+
+                % Creating a clean reference section
+                EEGCleanRef = clean_windows(EEG,0.075,[-3.5 5.5],1); 
+
+               %  Building the Blink EEG dataset
+                BlinkEEG = EEG; BlinkEEG.data = zeros(size(EEG.data));
+                for p=1:size(AbsLatency,1)
+                    BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
+                        EEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
+                end
+            
+                % Calibrate on the reference data
+                state = asr_calibrate(EEGCleanRef.data, EEGCleanRef.srate,...
+                    BurstCriterion, [], [], [], [], [], [], [], 'availableRAM_GB', MaxMemory);
+
+                % Extrapolate last few samples of the signal
+                sig = [BlinkEEG.data bsxfun(@minus,2*BlinkEEG.data(:,end),...
+                    BlinkEEG.data(:,(end-1):-1:end-round(asr_windowlen/2*BlinkEEG.srate)))];
+                
+                % Process signal using ASR
+                [BlinkEEG.data,state] = asr_process(sig,BlinkEEG.srate,state,...
+                    asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,MaxMemory,usegpu);
+                
+                % Shift signal content back (to compensate for processing delay)
+                BlinkEEG.data(:,1:size(state.carry,2)) = [];
+
+                % Replace original data with the Blink corrected data
+                NEWEEG = EEG;
+                for p=1:size(AbsLatency,1)
+                    NEWEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
+                        BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
+                end
+
+                % Allows for visual inspection of old/new EEG (Optional)
+                if strcmpi(Automaticity,'Yes')
+                    vis_artifacts(NEWEEG,EEG);
+                    disp('Ignore errors above !!');
+                    % Holds the figure until inspection is over
+                    Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
+                    uiwait(Fig);
+                    close gcf
+                end 
+                
+                % Replace artifact data
+                EEG.data = NEWEEG.data;
+            end
+            
             % Finding current subject export name
             CurrentSession = CurrentFile.FileList{h};
             CurrentSession = strsplit(CurrentSession,'.');
@@ -784,15 +782,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
                     sprintf(Dataset_filtered_cleaned, SubjName, WhichCond),...
                 'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtered_cleaned, SubjName, WhichCond)]); 
-            end
-
-            % Visual check before/after interpolation
-            if strcmpi(Automaticity,'Yes')==1
-                vis_artifacts(EEG,OriginalEEG);
-            % Holds the figure until inspection is over
-                Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
-                uiwait(Fig);
-                close gcf
             end
 
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
@@ -1479,33 +1468,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                 for t=1:length(FieldsAreas)
                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
                 end
-                                     
-                % Adjusting data according to electrodes included in analysis
-%                 if ~isempty(AllElectrodes)
-%                     SpectOutputsStruc.Data = structfun(@(x) x(AllElectrodes),...
-%                         SpectOutputsStruc.Data,'UniformOutput',0);
-%                 end
-                
-%                 % Finding the area with max electrode-mean amplitude
-%                 for m=1:size(FreqNames,1)
-%                     [ClustAmpStruct.MaxClust(m,:), ClustAmpStruct.MaxIdx(m,:)] = ...
-%                         max(SpectOutputsStruc.Data.(FreqNames{m}));
-% %                         structfun(@(x) max(x),SpectOutputsStruc.Data,'UniformOutput',0);
-%                     ClustAmpStruct.MaxIdx(m,:) = AllElectrodes(ClustAmpStruct.MaxIdx(m,:));
-% 
-%                     % Finding the area with min electrode-mean amplitude
-%                     [ClustAmpStruct.MinClust(m,:), ClustAmpStruct.MinIdx(m,:)] = ...
-%                          min(SpectOutputsStruc.Data.(FreqNames{m}));
-% %                         structfun(@(x) min(x),SpectOutputsStruc.Data,'UniformOutput',0);
-%                     ClustAmpStruct.MinIdx(m,:) = AllElectrodes(ClustAmpStruct.MinIdx(m,:));
-%                 end
 
                 % Finding the electrodes-cluster with max/min amplitude
                 for m=1:size(FreqNames,1)
                     for f=1:length(FieldsAreas)
                         [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
                     end
-                    
                 end
                 
         %----------------------% AMPLITUDE TABLES %-------------------------------%            
