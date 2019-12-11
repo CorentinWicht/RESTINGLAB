@@ -191,7 +191,6 @@ if strcmpi(AnalysesSwitch{2,end},'Yes')
             end
             NewAreasList.(SplitHeaders{k-1}) = sort(NewAreasList.(SplitHeaders{k-1}));
         end
-        NewAreasCells{k-1} = sort(NewAreasList.(SplitHeaders{k-1}));
     end
 end
 %% DIRECTORIES 
