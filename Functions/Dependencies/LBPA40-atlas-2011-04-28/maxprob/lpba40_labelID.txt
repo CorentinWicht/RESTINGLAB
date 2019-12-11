@@ -1,0 +1,56 @@
+21	L superior frontal gyrus
+22	R superior frontal gyrus
+23	L middle frontal gyrus
+24	R middle frontal gyrus
+25	L inferior frontal gyrus
+26	R inferior frontal gyrus
+27	L precentral gyrus
+28	R precentral gyrus
+29	L middle orbitofrontal gyrus
+30	R middle orbitofrontal gyrus
+31	L lateral orbitofrontal gyrus
+32	R lateral orbitofrontal gyrus
+33	L gyrus rectus
+34	R gyrus rectus
+41	L postcentral gyrus
+42	R postcentral gyrus
+43	L superior parietal gyrus
+44	R superior parietal gyrus
+45	L supramarginal gyrus
+46	R supramarginal gyrus
+47	L angular gyrus
+48	R angular gyrus
+49	L precuneus
+50	R precuneus
+61	L superior occipital gyrus
+62	R superior occipital gyrus
+63	L middle occipital gyrus
+64	R middle occipital gyrus
+65	L inferior occipital gyrus
+66	R inferior occipital gyrus
+67	L cuneus
+68	R cuneus
+81	L superior temporal gyrus
+82	R superior temporal gyrus
+83	L middle temporal gyrus
+84	R middle temporal gyrus
+85	L inferior temporal gyrus
+86	R inferior temporal gyrus
+87	L parahippocampal gyrus
+88	R parahippocampal gyrus
+89	L lingual gyrus
+90	R lingual gyrus
+91	L fusiform gyrus
+92	R fusiform gyrus
+101	L insular cortex
+102	R insular cortex
+121	L cingulate gyrus
+122	R cingulate gyrus
+161	L caudate
+162	R caudate
+163	L putamen
+164	R putamen
+165	L hippocampus
+166	R hippocampus
+181	cerebellum
+182	brainstem
