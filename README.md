@@ -29,13 +29,15 @@ UPDATES
 - Fixed error when importing parameters in SubjectsGUI.mlapp trough StudyGUI.mlapp
 - Fixed error when loading parameters in PreprocessingGUI.mlapp (seconds for asleep epochs rejection)
 - Implemented AreasList with channels labels instead of numbers
+- All plugins are now up-to-date and have been tested (11.12.2019)
 
 •	v0.63 (TO DO)
 - Try the 0.5 frequency resolution, also implement a method to have any frequency resolution
 - Check the correctedness of the source neighbouring matrix
 - Find a solution for statistics on frequency bins (3rd figures)
-- Test ASR-interpolation for BLINKER
-- Replace ASR 1.0 with ASR 2.0 to fix the problem of randomness?
 - Include in GUI possibility to adjust the IC rejection criteria for MPT?
 - Finish the MPT source localisation script
+
+•	Problems to solve in the future:
+- Find a way to implement ASR-interpolation for BLINKER
 
