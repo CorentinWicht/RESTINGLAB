@@ -30,14 +30,15 @@ UPDATES
 - Fixed error when loading parameters in PreprocessingGUI.mlapp (seconds for asleep epochs rejection)
 - Implemented AreasList with channels labels instead of numbers
 - All plugins are now up-to-date and have been tested (11.12.2019)
+- Implemented frequency resolution smaller than integer (e.g. 0.5)
 
 •	v0.63 (TO DO)
-- Try the 0.5 frequency resolution, also implement a method to have any frequency resolution
-- Check the correctedness of the source neighbouring matrix
+- Check the source neighbouring matrix
 - Find a solution for statistics on frequency bins (3rd figures)
-- Include in GUI possibility to adjust the IC rejection criteria for MPT?
+- Include in GUI possibility to adjust the IC rejection criteria for MPT
 - Finish the MPT source localisation script
 
 •	Problems to solve in the future:
 - Find a way to implement ASR-interpolation for BLINKER
+- Implement the method for 3D electrode localisation 
 
