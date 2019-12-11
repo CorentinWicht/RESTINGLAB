@@ -1401,11 +1401,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             
             % Detecting the frequency resolution based on user input
             if nnz(mod(FreqRanges,1) == 0) < numel(FreqRanges)
-                FreqRes = 2; % Need to provide more options than for 0.5 resolution
-                % PROBLEM HERE! I AM UNSURE THAT WHEN RETRIEVING DATA FOR
-                % SPECIFIC FREQUENCIES THIS WILL WORK AGAIN! 
-                % MAYBE USE on index based on FreqsSpec below??? 
-                
+                FreqToRes = find(mod(FreqRanges,1)~=0); FreqRes = 0;
+                for f=1:length(FreqToRes) % For each frequency with resolution lower than integer
+                    if FreqRes < 1/mod(FreqRanges(FreqToRes(1)),1)
+                        FreqRes = 1/mod(FreqRanges(FreqToRes(1)),1);
+                    end
+                end
             else
                 FreqRes = 1; 
             end
@@ -1433,7 +1434,9 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             for m=1:length(FreqRanges)
 
                 % LOOP
-                FreqRangesTemp=FreqRanges(m,:);
+                LowIdx(m) = find(FreqsSpec==FreqRanges(m,1));
+                HighIdx(m) = find(FreqsSpec==FreqRanges(m,2));
+                FreqRangesTemp=[LowIdx(m) HighIdx(m)]; % Index of frequency bounds
                 FreqTemp=mean(SpectOutputs(:,FreqRangesTemp(1):FreqRangesTemp(2)),2); 
                 FreqTempEP=FreqTemp';
 
@@ -1474,7 +1477,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                 % Spectra max amplitude measurement
                 for m=1:size(FreqNames,1)
                     LowIdx = find(FreqRanges(m,1)==FreqsSpec);
-                    HighIdx = find(FreqRanges(m,2)==FreqsSpec)-FreqRes; % I substract FreqRes since each bin is from e.g. 0 to 1. 
+                    HighIdx = find(FreqRanges(m,2)==FreqsSpec);  
                     SpectOutputsStruc.Data.(FreqNames{m})=mean(SpectOutputs(:,FreqRanges(m,:)),2); 
                     % Maximum amplitude for all freq ranges peak
 %                     SpectOutputsStruc.MaxAmp.(FreqNames{m})=...
