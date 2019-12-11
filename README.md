@@ -33,6 +33,7 @@ UPDATES
 - Implemented frequency resolution smaller than integer (e.g. 0.5)
 
 •	v0.63 (TO DO)
+- Solve the problem of frequency bins with PSD (i.e. https://github.com/sccn/eeglab/issues/101)
 - Check the source neighbouring matrix
 - Find a solution for statistics on frequency bins (3rd figures)
 - Include in GUI possibility to adjust the IC rejection criteria for MPT
