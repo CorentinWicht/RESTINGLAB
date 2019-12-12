@@ -1415,6 +1415,10 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             figure;[SpectOutputs,FreqsSpec]=pop_spectopo(EEG, 1, [], 'EEG','percent', ...
             100, 'freq', FreqsToPlot,'freqfac',FreqRes, 'freqrange',...
             [min(FreqRanges(1,1)) max(FreqRanges(end,2))],'electrodes','on'); 
+        
+            % Removing the first column of data (0 Freq = DC offset)
+            SpectOutputs = SpectOutputs(:,2:end);
+            FreqsSpec = FreqsSpec(2:end);
 
             % Saving topoplots
             SaveFigures(gcf,[TopoplotsDirectory sprintf('PowerSpectrum%d_%s',ParticipantNumber,...
