@@ -31,9 +31,9 @@ UPDATES
 - Implemented AreasList with channels labels instead of numbers
 - All plugins are now up-to-date and have been tested (11.12.2019)
 - Implemented frequency resolution smaller than integer (e.g. 0.5)
+- Solved the problem of the 0 frequency bin when using pwelch (i.e. DC Offset : https://github.com/sccn/eeglab/issues/101)
 
 •	v0.63 (TO DO)
-- Solve the problem of frequency bins with PSD (i.e. https://github.com/sccn/eeglab/issues/101)
 - Check the source neighbouring matrix
 - Find a solution for statistics on frequency bins (3rd figures)
 - Include in GUI possibility to adjust the IC rejection criteria for MPT
