@@ -32,6 +32,7 @@ UPDATES
 - All plugins are now up-to-date and have been tested (11.12.2019)
 - Implemented frequency resolution smaller than integer (e.g. 0.5)
 - Solved the problem of the 0 frequency bin when using pwelch (i.e. DC Offset : https://github.com/sccn/eeglab/issues/101)
+- Separated the channels rejection from interpolation and re-referencing, following the pipeline from: https://www.frontiersin.org/articles/10.3389/fnins.2018.00097/full. Now bad channels interpolation and robust referencing are performed at the end of the script (after optional ICA). 
 
 •	v0.63 (TO DO)
 - Check the source neighbouring matrix
