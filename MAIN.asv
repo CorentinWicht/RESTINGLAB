@@ -581,9 +581,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 'tau',PromptCleanLine{6},'verb',1,'winsize',PromptCleanLine{5},'winstep',PromptCleanLine{4});
             close gcf;
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%                    INTERPOLATION/CHANNELS REJECTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%%             
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+    %                    INTERPOLATION/CHANNELS REJECTION
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%%%             
 
             % Temporary save the original EEG (non-robust averaged)
             OriginalEEG = EEG;
@@ -612,10 +612,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 break
             end
             
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%                    NON-SINUSOIDAL NOISE REMOVAL
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%%  
-
+       
             % Saving data for visual comparision below
             OriginalEEG = EEG;
            
@@ -667,10 +664,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 end 
             end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%             EYE BLINKS ARTIFACTS REJECTION/INTERPOLATION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%% 
-            
             % BLINKER: EYE BLINKS REMOVAL
             if strcmpi(BLINKER,'Yes')
                 
@@ -743,6 +736,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     BlinkEEG.event(Pos).latency = BlinkEEG.event(Pos-1).latency + (AbsLatency(p,2)-AbsLatency(p,1));
                     Pos = Pos + 1;
                 end
+                % TEMPORARY
+                TempEEG.data = BlinkEEG.data;
             
                 % Calibrate on the reference data
                 state = asr_calibrate_r(EEGCleanRef.data, EEGCleanRef.srate,...
@@ -798,15 +793,18 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtered_cleaned, SubjName, WhichCond)]); 
             end
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%                    SLEEP / NO SLEEP
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+    %                    SLEEP / NO SLEEP
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Here we implemented a method to determine segments of
             % recording where the participant was awake or asleep.
             % The analysis is based on Diaz et al. (2016).
             % Overall higher amplitude of alpha band compared to theta band
             % would mean that the participant is still awake. If the opposite
             % is true, then the epoch will be classified as sleep.
+            
+            % THIS ALGORITHM IS NOT RELIABLE AT ALL !!!!!!!!!!!!!!!!!!!!!!!
+            % Sent an email to access : Z3Score V2
 
             if strcmpi(Sleep, 'Yes') 
 
@@ -921,9 +919,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     EEG.(EventFields{t})(or(IdxX,IdxBound))=[];
                 end
             end
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                  INDEPENDENT COMPONENT ANALYSIS (ICA)
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %                  INDEPENDENT COMPONENT ANALYSIS (ICA)
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % ONLY IF ICA SELECTED IN GUI
             if strcmpi(ICA,'Yes')        
                 
@@ -968,9 +966,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
         end
     end           
 
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%                            IC REJECTION
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+    %                            IC REJECTION
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     % Epitome of UI
     WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
     'Message','','Cancelable','on');
@@ -1198,10 +1196,10 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             r = 1;
             try
                 % Reintroduce the bad channels data 
-                Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
+                Temp = zeros(length(Channels),size(EEG.data,2)); Pos = 1; PosBad = 1;
                 for m=Channels
                    if ~ismember(m,InterpChanStruct.badChannels.all) 
-                       Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
+                       Temp(m,:) = EEG.data(Pos,:); Pos = Pos + 1;
                    else
                        Temp(m,:) = BadChansEEG.data(PosBad,:);PosBad = PosBad + 1;
                    end
@@ -1236,10 +1234,14 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 uiwait(Fig);
                 close gcf
             end
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%             EXPORTING PREPROCESSED RESULTS In .BDF file
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                     
+            
+            
+            
+            
+    %-------------------------------------------------------------------------% 
+    % MAIN: EXPORTING PREPROCESSED RESULTS In .BDF file
+    %-------------------------------------------------------------------------
             
             if strcmpi(ExpBDF,'Yes')
                 
@@ -1280,9 +1282,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 end
             end
             
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                         EXCEL FILES EXPORT 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
+    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %                         CLASS 8: EXCEL FILES EXPORT 
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
             % Waitbar updating 
             WaitBarApp.Title = '1. PREPROCESSING: Excel templates';
@@ -1311,9 +1313,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     XlsCompCol{1},Pos+1));
             end
 
-%-------------------------------------------------------------------------%
-                      % ICA REJECTED COMPONENTS
-%-------------------------------------------------------------------------%         
+    %-------------------------------------------------------------------------%
+            % ICA REJECTED COMPONENTS
+    %-------------------------------------------------------------------------%         
             if strcmpi(ICA,'Yes')         
                 % This function is used to determine the excel column names 
                 % corresponding to the number of rejected ICA components
@@ -1333,9 +1335,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                         XlsCompCol{1},Pos+1));
                 end
             end
-%-------------------------------------------------------------------------%
-                      % SLEEP/NO SLEEP EXPORTS
-%-------------------------------------------------------------------------%
+    %-------------------------------------------------------------------------%
+            % SLEEP/NO SLEEP EXPORTS
+    %-------------------------------------------------------------------------%
             % Exporting to Excel file
             if strcmpi(Sleep, 'Yes') 
                 writetable(SleepNoSleepTable,backslash(strcat(ExcelDirectory,'AsleepAwakeTrials.xlsx')));
@@ -1344,17 +1346,15 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
     end
 end
 
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%                       FREQUENCY BANDS ANALYSIS
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 % Epitome of UI
 WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
     'Message','','Cancelable','on');
 File = 0;
 
 if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    %                       FREQUENCY BANDS ANALYSIS
+    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
         % Finally, here we perform the power spectra analysis on specific
         % frequency bands. At the same time, topoplots are exported in
         % designed folder. 
@@ -1468,9 +1468,9 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             % Saving matrix with PSD for each subject
             save([Dir_save '\\' sprintf(PSDEEG,SubjName,WhichCond)],'SpectOutputs');
 
-            %-------------------------------------------------------------%
+            %-----------------------------------------------------------------%
             % FREQUENCIES EXPORT
-            %-------------------------------------------------------------%
+            %-----------------------------------------------------------------%
             % If range has been defined for a specific frequency at the beginning of
             % the script, the frequency power will be exported. Otherwise, it will be
             % omitted. Files are exported in .EP format, which is compatible with
@@ -1501,10 +1501,10 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                         'Sheet',[FreqNames{m} '_' lower(Conditions_Names{WhichCond})]);
                 end
             end
-            
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%           POWER SPECTRAL AMPLITUDE LOCALIZATION ANALYSES
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %        POWER SPECTRAL AMPLITUDE LOCALIZATION ANALYSES
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % This complementary analysis measures for each frequency band
             % what are the highest and lowest spectral amplitude (peak) 
             % and where they are recorded on the EEG scalp at the level of:
@@ -1541,7 +1541,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                     end
                 end
                 
-        %----------------------% AMPLITUDE TABLES %-----------------------%            
+        %----------------------% AMPLITUDE TABLES %-------------------------------%            
                 % Amplitude tables for frequency ranges consisting
                 % of min/max amplitude values and corresponding electrodes cluster index
 
