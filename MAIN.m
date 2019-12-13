@@ -600,8 +600,11 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 [~, InterpChanStruct] =  performReference(EEG);
                 
                 % Saving the bad channels data to reintroduce them later
-                BadChansEEG = EEG; 
-                BadChansEEG.data = EEG.data(InterpChanStruct.badChannels.all,:);
+                % Saving the bad channels data to reintroduce them later
+                EEG.BadChans.chanlocs = EEG.chanlocs; 
+                EEG.BadChans.nbchan = EEG.nbchan;
+                EEG.BadChans.data = EEG.data(InterpChanStruct.badChannels.all,:);
+                EEG.BadChans.InterpChans = InterpChanStruct.badChannels.all;
                 
                 % Removing the bad channels
                 EEG = pop_select(EEG,'nochannel',InterpChanStruct.badChannels.all);
@@ -703,14 +706,15 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     AbsLatency(m,:) = [blinkFits(m).leftBase blinkFits(m).rightBase];
                 end
                 
-                if strcmpi(AnswerBLINKER,'reject')
+                if strcmpi(AnswerBLINKER,'reject') && ~isempty(blinkFits)
                     
                     % Removing the data containing blinks
                     EEG = eeg_eegrej(EEG, AbsLatency);
                 end
             end
 
-            if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp')
+            if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp') ...
+                    && ~isempty(blinkFits)
                 
                 % THIS IS CURRENTLY NOT WORKING!!! I CANNOT FORCE TO
                 % INTERPOLATE ALL THE SIGNAL I AM PROVIDING HIM!!!!
@@ -1194,22 +1198,22 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %             BAD CHANNELS INTERPOLATION AND ROBUST REFERENCING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            ErrorArtifacts = {};
-            r = 1;
+%             ErrorArtifacts = {};
+%             r = 1;
             try
                 % Reintroduce the bad channels data 
                 Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
                 for m=Channels
-                   if ~ismember(m,InterpChanStruct.badChannels.all) 
+                   if ~ismember(m,EEG.BadChans.InterpChans) 
                        Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
                    else
-                       Temp(m,:) = BadChansEEG.data(PosBad,:);PosBad = PosBad + 1;
+                       Temp(m,:) = EEG.BadChans.data(PosBad,:);PosBad = PosBad + 1;
                    end
                 end
                 
                 % Adjust the EEG structure
-                EEG.data = Temp; EEG.chanlocs = BadChansEEG.chanlocs;
-                EEG.nbchan = BadChansEEG.nbchan;
+                EEG.data = Temp; EEG.chanlocs = EEG.BadChans.chanlocs;
+                EEG.nbchan = EEG.BadChans.nbchan;
                 EEG = eeg_checkset(EEG);
                 
                 % Use this function from the PrepPipeline to perform "Robust
@@ -1223,9 +1227,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     InterpChanStruct.noisyStatistics.noisyChannels.all;
             catch
                 % Write error to the LOG
-                ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
-                r = r+1;
-                break
+%                 ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
+%                 r = r+1;
+%                 break
             end
             
             % Visual check before/after interpolation
@@ -1342,6 +1346,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             end
         end
     end
+else
+    ErrorArtifacts = [];
 end
 
 
