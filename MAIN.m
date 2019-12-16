@@ -639,26 +639,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, str2double(AnswerASR{1}),...
                     str2double(AnswerASR{2}));          
 
-                % Removing the events that were created by ASR (may be useless)
-                Eventfields = {'event','urevent'};
-                for p=1:2
-                    if ~isempty(EEG.(Eventfields{p}))
-                        if sum(cellfun(@(x) ischar(x),{EEG.(Eventfields{p}).type})) == length({EEG.(Eventfields{p}).type})
-                            IdxX = contains({EEG.(Eventfields{p}).type},'X'); 
-                            IdxBound = contains({EEG.(Eventfields{p}).type},'boundary');
-                            EEG.(Eventfields{p})(or(IdxX,IdxBound))=[];
-                        else
-                            for t=1:length({EEG.(Eventfields{p}).type})
-                               if ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'X')...
-                                       || ischar(EEG.(Eventfields{p})(t).type) && strcmpi(EEG.(Eventfields{p})(t).type,'boundary') || ...
-                                       EEG.(Eventfields{p})(t).type==255
-                                   EEG.(Eventfields{p})(t)=[];
-                               end
-                            end
-                        end
-                    end
-                end
-
+                % Removing the events that were created by ASR 
+                EEG = RemovEvents(EEG,'EventTypes',{'X','boundary'});
+                
                 % Allows for visual inspection of old/new EEG (Optional)
                 if strcmpi(Automaticity,'Yes')
                     vis_artifacts(EEG,OriginalEEG);
@@ -711,6 +694,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     % Removing the data containing blinks
                     EEG = eeg_eegrej(EEG, AbsLatency);
                 end
+                          
+                % Removing the events that were created by eeg_eegrej()
+                EEG = RemovEvents(EEG,'EventTypes',{'boundary'});
             end
 
             if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp') ...
@@ -797,8 +783,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
             if strcmpi(Sleep, 'Yes') 
 
-                % Temporary epoching the file (4 seconds)
-                EEG = eeg_regepochs(EEG, 4);
+                % Temporary epoching the file 
+                EEG = eeg_regepochs(EEG, SecondsEpoch);
 
                 % WAVELET MORLET DECOMPOSITION
                 % composed or real and imaginery numbers : Gaussian and complex sine wave
