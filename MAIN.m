@@ -244,16 +244,17 @@ else
 end
 
 % Datasets templates (Adding the subject number before)
-Dataset_filtered = ['%s' FileNames '%d_filtered'];
-Dataset_filtered_cleaned = ['%s' FileNames  '%d_filtered_cleaned'];
-Dataset_filtered_cleaned_ICAed = ['%s' FileNames '%d_filtered_cleaned_ICAed'];
-Dataset_filtered_cleaned_ICAedRejected = ['%s' FileNames '%d_filtered_cleaned_ICAedRejected'];
+Dataset_filtCleaned = ['%s' FileNames '%d_filtered'];
+Dataset_interp = ['%s' FileNames  '%d_filtered_cleaned'];
+Dataset_filtCleaned_ICAed = ['%s' FileNames '%d_filtered_cleaned_ICAed'];
+Dataset_filtCleaned_ICAedRejected = ['%s' FileNames '%d_filtered_cleaned_ICAedRejected'];
 PreprocessedEEG=['%s' FileNames '%d_Preprocessed.bdf'];
 PSDEEG=['%s' FileNames '%d_PowerSpectDensity.mat'];
 
 %% SUBJECTS TEMPLATES
 Conditions_Order=readtable([DirectoryCond FileCond]);
 Conditions_OrderCell=table2cell(Conditions_Order(:,2:end));
+Conditions_Labels = Conditions_Order.Properties.VariableNames(2:end-1);
 TempSubjectslist = table2cell(Conditions_Order(:,1));
 
 % If only 1 condition
@@ -322,22 +323,27 @@ for k=1:length(FilesPath)
     end
 
     % Only keeping the ones containg the common name
-    if strcmpi(Extension,'.bdf')
-        % If file extension is .bdf
-        p=1;
-        for m=1:length(FileList)
-            if sum(ismember(FileList(m).name,FileNames))<=length(FileNames)
-                NewFileList(p,1) = FileList(m);
-                p=p+1;
-            end
-        end
-        FileList = NewFileList;
-    else
-        % If file extension is .set
-        FilesLength = cellfun(@(x) length(x), {FileList.name});
-        [~,SmallPos] = mink(FilesLength,length(Conditions)*length(Groups_Names)*length(Subjectslist));
-        FileList = FileList(SmallPos);
-    end
+%     if strcmpi(Extension,'.bdf')
+        % If file extension is .bdf 
+        
+    % Works for .bdf! needs to be tested for .set !!! Might be a problem 
+    % due to more than 1 file per data    
+    FileList = FileList(contains({FileList.name},FileNames));
+    
+%         p=1;
+%         for m=1:length(FileList)
+%             if sum(ismember(FileList(m).name,FileNames))<=length(FileNames)
+%                 NewFileList(p,1) = FileList(m);
+%                 p=p+1;
+%             end
+%         end
+%         FileList = NewFileList;
+%     else
+%         % If file extension is .set
+%         FilesLength = cellfun(@(x) length(x), {FileList.name});
+%         [~,SmallPos] = mink(FilesLength,length(Conditions)*length(Groups_Names)*length(Subjectslist));
+%         FileList = FileList(SmallPos);
+%     end
     
     % List of all folders in the group
     GroupFoldersTemp = {FileList(contains({FileList.folder},FilesPath{k})).folder};
@@ -359,15 +365,20 @@ for k=1:length(FilesPath)
         % For each unique file (for each participant/folder) 
         for l=1:length(NumofFiles)
             CurrentFile = {FileList(NumofFiles(l)).name};
+            CurrentFileSplit = strsplit(CurrentFile{:},'.');
             
             % Position in excel files 
-            TempFilePos = cellfun(@(x) x==CurrentSubj, SubjectsIncluded(:,1));
+            TempFilePos = cellfun(@(x) x==CurrentSubj, SubjectsIncluded(:,1)); % Subject
+            if length(Conditions) > 1 % Session
+                CondPos = find(contains(Conditions_Labels,CurrentFileSplit{1}));
+            else
+                CondPos = 1;
+            end
             
             % Only including data that was selected in the GUI
-            if cell2mat(SubjectsIncluded(TempFilePos,l+1)) == 1 % initially str2double 
+            if cell2mat(SubjectsIncluded(TempFilePos,CondPos+1)) == 1 % initially str2double 
                 
                 % HERE WRITE FOR THE LOG ! 
-                
                 Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).Path = UniqueFoldersTemp(j);
                 
                 % Create the folder list content structure called FileList
@@ -546,24 +557,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             
             % High-pass/Low-pass filter
             EEG = pop_eegfiltnew(EEG,HighPass,LowPass); 
-                  
-            % Finding current subject export name
-            CurrentSession = CurrentFile.FileList{h};
-            CurrentSession = strsplit(CurrentSession,'.');
-            SubjName = strtok(CurrentSession{1},FileNames);
-            % If there is no file specific name
-            if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFile.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-            end
-
-            % Save DATASET 1 - FILTERED
-            if strcmpi(ExpFilt,'Yes')
-                [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                    sprintf(Dataset_filtered, SubjName,WhichCond)...
-                ,'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond)]);  
-            end
-
+           
     %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
     %                    ARTIFACTS REJECTION
     %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
@@ -580,6 +574,16 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 'pad',PromptCleanLine{7},'plotfigures',0,'scanforlines',1,'sigtype','Channels',...
                 'tau',PromptCleanLine{6},'verb',1,'winsize',PromptCleanLine{5},'winstep',PromptCleanLine{4});
             close gcf;
+                 
+            % Finding current subject export name
+%             CurrentSession = CurrentFile.FileList{h};
+%             CurrentSession = strsplit(CurrentSession,'.');
+%             SubjName = strtok(CurrentSession{1},FileNames);
+%             % If there is no file specific name
+%             if sum(isstrprop(SubjName,'digit'))>0
+                Temp = strsplit(CurrentFile.Path{:},'\');
+                SubjName = [Temp{end} '_'];
+%             end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %                    INTERPOLATION/CHANNELS REJECTION
@@ -597,7 +601,22 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             try
                 % Function from the PrepPipeline to perform 1) Bad Channels
                 % Detection and rejection
-                [~, InterpChanStruct] =  performReference(EEG);
+%                 [~, InterpChanStruct] =  performReference(EEG);
+                     
+                % Parameters
+                InterpChanStruct = getReferenceStructure();
+                defaults = getPrepDefaults(EEG, 'reference');
+                InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
+                defaults = getPrepDefaults(EEG, 'detrend');
+                InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
+                InterpChanStruct.rereferencedChannels = sort(InterpChanStruct.rereferencedChannels);
+                InterpChanStruct.referenceChannels = sort(InterpChanStruct.referenceChannels);
+                InterpChanStruct.evaluationChannels = sort(InterpChanStruct.evaluationChannels);
+                
+                % Bad channels identification by robust reference
+                InterpChanStruct.referenceSignalOriginal = ...
+                    nanmean(EEG.data(InterpChanStruct.referenceChannels, :), 1);
+                InterpChanStruct = robustReference(EEG, InterpChanStruct);
                 
                 % Saving the bad channels data to reintroduce them later
                 % Saving the bad channels data to reintroduce them later
@@ -665,8 +684,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
                 % Setting parameters
                 Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
-                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond)];
-                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtered, SubjName, WhichCond) '_blinks.mat'];
+                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond)];
+                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond) '_blinks.mat'];
                 Params.showMaxDistribution = true;
                 Params.verbose = false;
                 Params.fieldList = {'leftBase','rightBase'};
@@ -894,6 +913,13 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     EEG.(EventFields{t})(or(IdxX,IdxBound))=[];
                 end
             end
+            
+            % Save DATASET 1 - FILTERED (MANDATORY)
+            if strcmpi(ExpFilt,'Yes')
+                [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
+                    sprintf(Dataset_filtCleaned, SubjName,WhichCond)...
+                ,'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond)]);  
+            end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  INDEPENDENT COMPONENT ANALYSIS (ICA)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -934,8 +960,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % Save DATASET 2 - ICA COMPUTED
                 if strcmpi(ExpICAED,'Yes')
                     [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                        sprintf(Dataset_filtered_cleaned_ICAed, SubjName, WhichCond),...
-                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtered_cleaned_ICAed, SubjName, WhichCond)]);  
+                        sprintf(Dataset_filtCleaned_ICAed, SubjName, WhichCond),...
+                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAed, SubjName, WhichCond)]);  
                 end
             end
         end
@@ -990,14 +1016,14 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             Dir_load = backslash(CurrentFile.Path{:});
             
             % Finding current subject export name
-            CurrentSession = CurrentFile.FileList{h};
-            CurrentSession = strsplit(CurrentSession,'.');
-            SubjName = strtok(CurrentSession{1},FileNames);
-            % If there is no file specific name
-            if sum(isstrprop(SubjName,'digit'))>0
+%             CurrentSession = CurrentFile.FileList{h};
+%             CurrentSession = strsplit(CurrentSession,'.');
+%             SubjName = strtok(CurrentSession{1},FileNames);
+%             % If there is no file specific name
+%             if sum(isstrprop(SubjName,'digit'))>0
                 Temp = strsplit(CurrentFile.Path{:},'\');
                 SubjName = [Temp{end} '_'];
-            end
+%             end
                   
             % If save path different than CurrentPWD
             if ~isempty(SavePath)
@@ -1009,11 +1035,11 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % RE-IMPORT LAST DATASET 
             if strcmpi(ICA,'Yes')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAed
-                EEG = pop_loadset('filename',[sprintf(Dataset_filtered_cleaned_ICAed,SubjName,WhichCond) '.set'],...
+                EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned_ICAed,SubjName,WhichCond) '.set'],...
                     'filepath',Dir_save);
             else
                 % IF no ICA: Dataset_filtered_cleaned
-                EEG = pop_loadset('filename',[sprintf(Dataset_filtered_cleaned,SubjName,WhichCond) '.set'],...
+                EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned,SubjName,WhichCond) '.set'],...
                     'filepath',Dir_save);
             end
             
@@ -1158,25 +1184,27 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % Save DATASET 3 - PRUNED WITH ICA
                 if strcmpi(ExpICARej,'Yes')
                     [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                        sprintf(Dataset_filtered_cleaned_ICAedRejected, SubjName, WhichCond),...
-                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtered_cleaned_ICAedRejected,SubjName,WhichCond)]);
+                        sprintf(Dataset_filtCleaned_ICAedRejected, SubjName, WhichCond),...
+                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,WhichCond)]);
                 end
             end
 
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%             BAD CHANNELS INTERPOLATION AND ROBUST REFERENCING
+%             BAD CHANNELS INTERPOLATION AND AVERAGE REFERENCING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %             ErrorArtifacts = {};
 %             r = 1;
-            try
+%             try
                 % Reintroduce the bad channels data 
                 Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
                 for m=Channels
                    if ~ismember(m,EEG.BadChans.InterpChans) 
                        Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
                    else
-                       Temp(m,:) = EEG.BadChans.data(PosBad,:);PosBad = PosBad + 1;
+                       % Restricting channel data length since EEG.data
+                       % size might have changed with artifact rejection
+                       Temp(m,:) = EEG.BadChans.data(PosBad,1:size(EEG.data,2));PosBad = PosBad + 1;
                    end
                 end
                 
@@ -1185,21 +1213,27 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 EEG.nbchan = EEG.BadChans.nbchan;
                 EEG = eeg_checkset(EEG);
                 
+                % Multiquadratics bad channels interpolation
+                EEG.data = EEGinterp('MQ',0.05,EEG,EEG.BadChans.InterpChans);
+                
+                % Average referencing
+                EEG = average_ref(EEG);
+                
                 % Use this function from the PrepPipeline to perform "Robust
                 % Referencing" and Detection of Bad Channels Rejection/Interpolation
-                [EEG, InterpChanStruct] =  performReference(EEG);
-                EEG.etc.noiseDetection.reference = InterpChanStruct;
-                EEG.etc.noiseDetection.fullReferenceInfo = true;
-                EEG.etc.noiseDetection.interpolatedChannelNumbers = ...
-                    InterpChanStruct.interpolatedChannels.all;
-                EEG.etc.noiseDetection.stillNoisyChannelNumbers = ...
-                    InterpChanStruct.noisyStatistics.noisyChannels.all;
-            catch
+%                 [EEG, InterpChanStruct] =  performReference(EEG);
+%                 EEG.etc.noiseDetection.reference = InterpChanStruct;
+%                 EEG.etc.noiseDetection.fullReferenceInfo = true;
+%                 EEG.etc.noiseDetection.interpolatedChannelNumbers = ...
+%                     InterpChanStruct.interpolatedChannels.all;
+%                 EEG.etc.noiseDetection.stillNoisyChannelNumbers = ...
+%                     InterpChanStruct.noisyStatistics.noisyChannels.all;
+%             catch
                 % Write error to the LOG
 %                 ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
 %                 r = r+1;
 %                 break
-            end
+%             end
             
             % Visual check before/after interpolation
             if strcmpi(Automaticity,'Yes')==1
@@ -1270,8 +1304,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % Save DATASET 4 - ClEANED/CHANNELED
             if strcmpi(ExpClean,'Yes')
                 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                    sprintf(Dataset_filtered_cleaned, SubjName, WhichCond),...
-                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtered_cleaned, SubjName, WhichCond)]); 
+                    sprintf(Dataset_interp, SubjName, WhichCond),...
+                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_interp, SubjName, WhichCond)]); 
             end
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1391,14 +1425,14 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             Dir_load = backslash(CurrentFile.Path{:});
             
             % Finding current subject export name
-            CurrentSession = CurrentFile.FileList{h};
-            CurrentSession = strsplit(CurrentSession,'.');
-            SubjName = strtok(CurrentSession{1},FileNames);
-            % If there is no file specific name
-            if sum(isstrprop(SubjName,'digit'))>0
+%             CurrentSession = CurrentFile.FileList{h};
+%             CurrentSession = strsplit(CurrentSession,'.');
+%             SubjName = strtok(CurrentSession{1},FileNames);
+%             % If there is no file specific name
+%             if sum(isstrprop(SubjName,'digit'))>0
                 Temp = strsplit(CurrentFile.Path{:},'\');
                 SubjName = [Temp{end} '_'];
-            end
+%             end
             
             % If save path different than CurrentPWD
             if ~isempty(SavePath)
@@ -1411,12 +1445,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             if strcmpi(ICA,'Yes')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAedRejected
                 EEG = pop_loadset('filename',...
-                    [sprintf(Dataset_filtered_cleaned_ICAedRejected,SubjName,WhichCond) '.set'],...
+                    [sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,WhichCond) '.set'],...
                     'filepath',Dir_save);
             else
                 % IF no ICA: Dataset_filtered_cleaned
                 EEG = pop_loadset('filename',...
-                    [sprintf(Dataset_filtered_cleaned,SubjName,WhichCond) '.set'],...
+                    [sprintf(Dataset_interp,SubjName,WhichCond) '.set'],...
                     'filepath',Dir_save);
             end
             
