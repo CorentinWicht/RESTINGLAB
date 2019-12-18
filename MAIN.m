@@ -1189,7 +1189,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 end
             end
 
-            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %             BAD CHANNELS INTERPOLATION AND AVERAGE REFERENCING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1321,7 +1320,15 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % folder
 
             % List of interpolated channels
-            InterpChans = EEG.etc.noiseDetection.reference.interpolatedChannels.all;
+            if ~isempty(EEG.BadChans.InterpChans)
+                if size(EEG.BadChans.InterpChans,1) == 1
+                    InterpChans = EEG.BadChans.InterpChans;
+                else
+                    InterpChans = EEG.BadChans.InterpChans';
+                end
+            else
+                InterpChans = [];
+            end
 
             % This function is used to determine the excel column names 
             % corresponding to the number of interpolated channels
@@ -1623,7 +1630,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 %                  SAVING VARIABLES FOR FURTHER USE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 save([SavePath '\Parameters\' Date_Start '\MAINWorkspace.mat'],...
-    'Dataset_filtered_cleaned_ICAedRejected','Dataset_filtered_cleaned',...
+    'Dataset_filtCleaned_ICAedRejected','Dataset_filtCleaned',...
     'Participant_load','Groups_Names','Conditions_Names','Subjectslist',...
     'FreqRanges','ErrorArtifacts','ExcelDirectory');
 end
