@@ -94,9 +94,11 @@ time_start = datestr(SplitDateFolder);
 % Creating the log file
 % date_name = datestr(now,'dd-mm-yy_HHMM');
 if sum(~SavePath)<1
-    fid = fopen([SavePath '\RESTINGLablog_' Date_Start '.txt'],'w');    
+    OutputPath = [SavePath '\RESTINGLablog_' Date_Start '.txt'];
+    fid = fopen(OutputPath,'w');    
 else
-    fid = fopen([CurrentPWD '\RESTINGLablog_' Date_Start '.txt'],'w');
+    OutputPath = [CurrentPWD '\RESTINGLablog_' Date_Start '.txt'];
+    fid = fopen(OutputPath,'w');
 end
 % date, starting time, finished time, number of analyzed files
 fprintf(fid,'%s\t%s\r\n',['Start : ',time_start],['End: ',time_end]);
@@ -129,7 +131,7 @@ if ~isempty(WithinFactors)
     WithinLevels = WithinLevels(~cellfun('isempty',WithinLevels));
     for k=1:length(WithinFactors)
         fprintf(fid,'\r\n\r\n%s',sprintf('Within-subject factor %d : %s, with levels : %s',...
-            k,upper(WithinFactors{k}),strjoin(WithinLevels(:,k))));
+            k,upper(WithinFactors{k}),sprintf('%s ',WithinLevels{:,k})));
     end
 end
 
@@ -174,7 +176,7 @@ if strcmpi(BLINKER,'Yes')
    % BLINKER PARAMETERS 
    BlinkerParam = {'Reject portions of data containing blinks','Interpolate portions containing blinks using ASR'};
    fprintf(fid,'\r\n\r\n%s','BLINKER parameters ----');
-   fprintf(fid,'\r\n%s',sprintf('- BLINKER applied as following : %s',BlinkerParam{str2double(BLINKERParam{1})}));
+   fprintf(fid,'\r\n%s',sprintf('- BLINKER applied as following : %s',BlinkerParam{str2double(AnswerBLINKER{1})}));
 end
 
 % CLEANLINE PARAMETERS 
@@ -202,7 +204,8 @@ if Analysis
         end
     end
     
-    if strcmpi(Steps,'Both') || strcmpi(Steps,'Group analyses') 
+    if (strcmpi(Steps,'Both') || strcmpi(Steps,'Group analyses')) && ...
+            strcmpi(MicroStatesSwitch,'Yes')
         % STUDY analyses
         fprintf(fid,'\r\n\r\n%s\r\n','2) Groups/Conditions levels ------');
         fprintf(fid,'\r\n%s\r\n','A) MicroStates analyses ------');
@@ -222,9 +225,11 @@ if Analysis
                     m,InternalFields{m},TempData));
             end
         end
-        
+    end
+    if strcmpi(Steps,'Both') || strcmpi(Steps,'Group analyses') && ...
+            strcmpi(ICclusteringSwitch,'Yes')
         % WRITE ALSO FOR IC CLUSTERING !! 
-        LogIC
+        % LogIC
     end
 
 end
@@ -268,7 +273,7 @@ else
     fprintf(fid,'\r\n No errors reported, congrats!');
 end
 fprintf(fid,'\r\n%s\r\n','------ 2) Group Analyses: ------');
-if ~isempty('ErrorSTUDY')
+if exist('ErrorSTUDY','var') && ~isempty(ErrorSTUDY)
      fprintf(fid,'\r\n%s',sprintf(['The following files in the STUDY displayed a different' ...
          'sampling rate than others, hence we downsampled all of them to %dHz:'],ErrorSTUDY{1}));
     for k=2:size(ErrorSTUDY,1) 
@@ -277,6 +282,9 @@ if ~isempty('ErrorSTUDY')
 else
     fprintf(fid,'\r\n No errors reported, congrats!');
 end
+
+% Output message
+fprintf('LOG file exported in %s\n',OutputPath)
 
 % Closing the file
 fclose(fid);
