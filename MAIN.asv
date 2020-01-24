@@ -438,17 +438,9 @@ for m=1:size(FreqRanges,1)
     AreaAmpTable.(FreqNames{m})=readtable(backslash([ExcelDirectory ['AreaAmplitude' FreqNames{m} '.xlsx']]));
 
     for n=1:length(Conditions)
-      % Temporary sheet name
-        TempSheetsName = [FreqNames{m} '_' lower(Conditions_Names{n})];
-
-        % sheets name longer than or equal to 31 characters will crash
-        if length(TempSheetsName) >= 31
-            TempSheetsName = TempSheetsName(1:30);
-        end
-        
        % Importing Global Power Spectra templates
         GPS.(FreqNames{m}).(Conditions_Names{n})=readtable(backslash([ExcelDirectory ['GPS_' FreqNames{m} '.xlsx']]),...
-            'Sheet',TempSheetsName);  
+            'Sheet',[FreqNames{m} '_' lower(Conditions_Names{n})]);  
     end
 end
 

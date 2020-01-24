@@ -125,8 +125,15 @@ for m=1:length(FreqNames)
     % GPS tables
     for n=1:length(Conditions_Names)
         if ismember('GPS',MissingTemplate)
+            % Temporary sheet name
+            TempSheetsName = [FreqNames{m} '_' lower(Conditions_Names{n})];
+            
+            % sheets name longer than or equal to 31 characters will crash
+            if length(TempSheetsName) >= 31
+                TempSheetsName = TempSheetsName(1:30);
+            end
             writetable(GPS.(FreqNames{m}).(Conditions_Names{n}),[ExcelDirectory ...
-                ['GPS_' FreqNames{m} '.xlsx']],'Sheet',[FreqNames{m} '_' lower(Conditions_Names{n})]);
+                ['GPS_' FreqNames{m} '.xlsx']],'Sheet',TempSheetsName);
 %             RemoveSheet123([ExcelDirectory ['GPS_' FreqNames{m} '.xlsx']])
             NumTemp=NumTemp+1;
         end
