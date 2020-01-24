@@ -306,9 +306,23 @@ for k=1:length(FilesPath)
     
     % Path of the folders containing the datasets for each group
     FileList = dir([FilesPath{k} '\**/*' lower(Extension)]); 
-
-    % Removing Preprocessed.bdf files if preprocessing selected
+    
+    % Removing unnecessary files:
+    % 1) Removing Preprocessed.bdf files if preprocessing selected
     FileList = FileList(~contains({FileList.name},'Preprocessed'));
+    
+    % 2) If loading .set, remove unused file versions
+    if strcmpi(Extension,'.set')
+        % non-ICA files
+        IdxNonICA = contains({FileList.name}','filtered_cleaned');
+        
+        % ICA files
+        IdxICA = contains({FileList.name}','filtered_cleaned_ICAedRejected');
+        
+        % Grouping indexes and removing unused files
+        IdxRem = or(IdxNonICA,IdxICA);
+        FileList = FileList(IdxRem);
+    end
     
     % If save path different than CurrentPWD
     if sum(~SavePath)<1
@@ -1044,11 +1058,11 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             if strcmpi(ICA,'Yes')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAed
                 EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned_ICAed,SubjName,WhichCond) '.set'],...
-                    'filepath',Dir_save);
+                    'filepath',Dir_load);
             else
                 % IF no ICA: Dataset_filtered_cleaned
                 EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned,SubjName,WhichCond) '.set'],...
-                    'filepath',Dir_save);
+                    'filepath',Dir_load);
             end
             
             % Waitbar updating 
@@ -1461,12 +1475,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAedRejected
                 EEG = pop_loadset('filename',...
                     [sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,WhichCond) '.set'],...
-                    'filepath',Dir_save);
+                    'filepath',Dir_load);
             else
                 % IF no ICA: Dataset_filtered_cleaned
                 EEG = pop_loadset('filename',...
                     [sprintf(Dataset_interp,SubjName,WhichCond) '.set'],...
-                    'filepath',Dir_save);
+                    'filepath',Dir_load);
             end
             
             % Waitbar updating 
@@ -1574,15 +1588,16 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 
                 % Creating a structure from the initial AreasList matrix
                 FieldsAreas=fieldnames(NewAreasList);
-                AllElectrodes = [];
-                for t=1:length(FieldsAreas)
-                    AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
-                end
+%                 AllElectrodes = [];
+%                 for t=1:length(FieldsAreas)
+%                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
+%                 end
 
                 % Finding the electrodes-cluster with max/min amplitude
                 for m=1:size(FreqNames,1)
                     for f=1:length(FieldsAreas)
-                        [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
+                        % [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
+                        [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(NewAreasList.(FieldsAreas{t})));
                     end
                 end
                 
