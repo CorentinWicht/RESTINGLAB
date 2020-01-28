@@ -1535,6 +1535,9 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             % omitted. Files are exported in .EP format, which is compatible with
             % STEN and CARTOOL softwares.
 
+            % Creating a structure from the initial AreasList matrix
+            FieldsAreas=fieldnames(NewAreasList);
+                    
             for m=1:length(FreqRanges)
 
                 % LOOP
@@ -1559,7 +1562,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                         [ExcelDirectory 'GPS_' FreqNames{m} '.xlsx'],...
                         'Sheet',[FreqNames{m} '_' lower(Conditions_Names{WhichCond})]);
                 end
-            end
+           
             
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %           POWER SPECTRAL AMPLITUDE LOCALIZATION ANALYSES
@@ -1572,52 +1575,53 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             % computed in order to compare the results with the ipsilateral
             % maximum amplitude side.
 
-            if strcmpi(AnalysesSwitch{2,2},'Yes')
-                
-                % Waitbar updating 
-                WaitBarApp.Title = '2. ANALYSES: PSD Electrodes clusters';
-              
-        %---------------------------% AREA LEVEL %------------------------%
-                % Spectra max amplitude measurement
-                for m=1:size(FreqNames,1)
+                if strcmpi(AnalysesSwitch{2,2},'Yes')
+
+                    % Waitbar updating 
+                    WaitBarApp.Title = '2. ANALYSES: PSD Electrodes clusters';
+
+            %---------------------------% AREA LEVEL %------------------------%
+                    % Spectra max amplitude measurement
+%                     for m=1:size(FreqNames,1)
                     SpectOutputsStruc.Data.(FreqNames{m})=mean(SpectOutputs(:,[LowIdx(m) HighIdx(m)]),2); 
-                    % Maximum amplitude for all freq ranges peak
-%                     SpectOutputsStruc.MaxAmp.(FreqNames{m})=...
-%                         max(SpectOutputsStruc.Data(:).(FreqNames{m})); 
-                end
+                        % Maximum amplitude for all freq ranges peak
+    %                     SpectOutputsStruc.MaxAmp.(FreqNames{m})=...
+    %                         max(SpectOutputsStruc.Data(:).(FreqNames{m})); 
+%                     end
 
-                % Creating a structure from the initial AreasList matrix
-                FieldsAreas=fieldnames(NewAreasList);
-%                 AllElectrodes = [];
-%                 for t=1:length(FieldsAreas)
-%                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
-%                 end
+                    % Creating a structure from the initial AreasList matrix
+                   %  FieldsAreas=fieldnames(NewAreasList);
+    %                 AllElectrodes = [];
+    %                 for t=1:length(FieldsAreas)
+    %                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
+    %                 end
 
-                % Finding the electrodes-cluster with max/min amplitude
-                for m=1:size(FreqNames,1)
+                    % Finding the electrodes-cluster with max/min amplitude
+%                     for m=1:size(FreqNames,1)
                     for f=1:length(FieldsAreas)
                         % [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
-                        [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(NewAreasList.(FieldsAreas{t})));
+                        [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(NewAreasList.(FieldsAreas{f})));
                     end
-                end
+%                     end
+            
                 
         %----------------------% AMPLITUDE TABLES %-----------------------%            
                 % Amplitude tables for frequency ranges consisting
                 % of min/max amplitude values and corresponding electrodes cluster index
 
-                % Find positions of columns to store values according to
-                % conditions
-                Max = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                    lower([Conditions_Names{WhichCond} '_Max']));
-                Min =ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                    lower([Conditions_Names{WhichCond} '_Min']));
-                MaxAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                    lower([Conditions_Names{WhichCond} '_MaxClust']));
-                MinAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                    lower([Conditions_Names{WhichCond} '_MinClust']));
+                    % Find positions of columns to store values according to
+                    % conditions
+                    Max = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
+                        lower([Conditions_Names{WhichCond} '_Max']));
+                    Min =ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
+                        lower([Conditions_Names{WhichCond} '_Min']));
+                    MaxAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
+                        lower([Conditions_Names{WhichCond} '_MaxClust']));
+                    MinAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
+                        lower([Conditions_Names{WhichCond} '_MinClust']));
 
                 % Store values in corresponding tables
-                for m=1:size(FreqRanges,1)
+                % for m=1:size(FreqRanges,1)
                     
                     % Finding corresponding electrode-cluster area
                     [MaxClust,FindMax] = max(MeanClust(m,:));
@@ -1644,7 +1648,8 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                     % Exporting the tables in predefined excel files
                     writetable(AreaAmpTable.(FreqNames{m}),...
                         [ExcelDirectory 'AreaAmplitude' FreqNames{m} '.xlsx']);
-                end      
+                % end  
+                end
             end
         end
     end
