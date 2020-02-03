@@ -264,7 +264,7 @@ end
 
 % Only keeping subjects selected for analysis
 j=1;t=1;
-TempSubjectslist=cell2mat(TempSubjectslist);
+TempSubjectslist=cellfun(@(x) str2double(x),TempSubjectslist);
 for k=1:length(TempSubjectslist)
     for l=1:size(ProcessData,2) % Number of sessions  
         if ProcessData{k,l}
@@ -425,22 +425,32 @@ for k=1:length(FilesPath)
 end
 
 %% Excel templates
-% If save path different than CurrentPWD
-if sum(~SavePath)<1
-    ExcelFiles=dir([SavePath '\Excel\' Date_Start '\**/*' '.xlsx']);
-    
-    % Creating excel templates if they do not exist
-    if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
-        CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[SavePath '\Excel\' Date_Start '\'],ExcelFiles);
+
+try 
+    % If save path different than CurrentPWD
+    if sum(~SavePath)<1
+        ExcelPath = [SavePath '\Excel\' Date_Start];
+        ExcelFiles=dir([ExcelPath  '\**/*' '.xlsx']);
+
+        % Creating excel templates if they do not exist
+        if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
+            CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[SavePath '\Excel\' Date_Start '\'],ExcelFiles);
+        end
+    else
+        Temp=what('Excel');
+        ExcelPath = [Temp.path '\' Date_Start];
+        ExcelFiles=dir([ExcelPath  '\**/*' '.xlsx']);
+
+        % Creating excel templates if they do not exist
+        if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
+            CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[Temp.path '\' Date_Start '\'],ExcelFiles);
+        end
     end
-else
-    Temp=what('Excel');
-    ExcelFiles=dir([Temp.path '\' Date_Start '\**/*' '.xlsx']);
+catch
+    warning(['Since excel templates already exist and you just changed the FileName, the script crashed.',...
+        newline 'To avoid this, please remove all previously generated templates from the following folder and re-run the script:', ...
+        newline ExcelPath])
     
-    % Creating excel templates if they do not exist
-    if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
-        CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[Temp.path '\' Date_Start '\'],ExcelFiles);
-    end
 end
 
 % LOADING THE TEMPLATES
@@ -822,8 +832,44 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % would mean that the participant is still awake. If the opposite
             % is true, then the epoch will be classified as sleep.
 
-            if strcmpi(Sleep, 'Yes') 
+           if strcmpi(Sleep, 'Yes') 
+                
+                % TO CONTINUE:                
+                
+                % TESTING THE NEW ALGORITHM:
+                % https://github.com/alexander-malafeev/feature-based-sleep-scoring  
+                
+%                 % Channel to use
+%                 SleepChan = ismember({EEG.chanlocs.labels},'C1'); % GUI!!
+%                 LOCChan = ismember({EEG.chanlocs.labels},'Fp1');
+%                 ROCChan = ismember({EEG.chanlocs.labels},'Fp2');
+%                 
+%                 % Main electrode data
+%                 EEGSleep = squeeze(EEG.data(SleepChan,:));
+%                 
+%                 % truncate signals, i.e. it should contain integer number of epochs
+%                 EpochsTF = SecondsEpoch*EEG.srate;
+%                 MaxExp=floor(size(EEG.data,2)/EpochsTF); % how many X second epochs are in our file
+%                 EEGSleep = EEGSleep(1,1:MaxExp*EpochsTF);
+%                 
+%                 % Additional electrodes
+%                 EOG = zeros(1,size(EEGSleep,2));
+%                 EMG = zeros(1,size(EEGSleep,2));
+%                 LOC = squeeze(EEG.data(LOCChan,:));
+%                 LOC = LOC(1,1:MaxExp*EpochsTF);
+%                 ROC = squeeze(EEG.data(ROCChan,:));
+%                 ROC = LOC(1,1:MaxExp*EpochsTF);
+%                 
+%                 % Channel power spectra
+%                 FreqResol = 5; % GUI!!
+%                 SamplingRate = EEG.srate;
+%                 Spect = spectopo(EEGSleep,0,EEG.srate,'freqfac',FreqResol,'plot','off');
+%                 
+%                 % Extracting sleep-related features on 1 EEG channel
+%                 [ X, FeaturesNames] = extractFeatures(Spect', EEGSleep,  EOG,  EMG,...
+%                     SecondsEpoch, SamplingRate, FreqResol, LOC, ROC);
 
+                %% 
                 % Temporary epoching the file 
                 EEG = eeg_regepochs(EEG, SecondsEpoch);
 
