@@ -35,6 +35,7 @@ UPDATES
 - Separated the channels rejection from interpolation and re-referencing, following the pipeline from: https://www.frontiersin.org/articles/10.3389/fnins.2018.00097/full. Now bad channels interpolation and robust referencing are performed at the end of the script (after optional ICA). 
 
 •	v0.63 (TO DO)
+- Use triggers to restrain data length (!)
 - Check the source neighbouring matrix
 - Find a solution for statistics on frequency bins (3rd figures)
 - Include in GUI possibility to adjust the IC rejection criteria for MPT
@@ -45,4 +46,5 @@ UPDATES
 •	Problems to solve in the future:
 - Find a way to implement ASR-interpolation for BLINKER
 - Implement the method for 3D electrode localisation 
+- Find a way to run the sleep detection algorithm
 
