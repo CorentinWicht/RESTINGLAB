@@ -754,7 +754,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     && ~isempty(blinkFits)
                 
                 % THIS IS CURRENTLY NOT WORKING!!! I CANNOT FORCE TO
-                % INTERPOLATE ALL THE SIGNAL I AM PROVIDING HIM!!!!
+                % INTERPOLATE ALL THE SIGNAL I AM PROVIDING IT!!!!
                 % SHIT....
                 
                 % 1) ASR 1st run
