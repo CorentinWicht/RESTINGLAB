@@ -14,9 +14,9 @@ RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone 
 | [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | |
 | [LBPA40 atlas v2011-04-28](https://resource.loni.usc.edu/resources/atlases-downloads/) | |
 | [CubeHelix v2.0](https://github.com/DrosteEffect/CubeHelix) | Color scheme generator |
-| [mColonFolder v1.6.0](https://ch.mathworks.com/matlabcentral/fileexchange/29854-multiple-colon) | Color scheme generator |
-| [Gramm](https://github.com/piermorel/gramm v2.0) | Color scheme generator |
-| [PrepPipeline v0.55.3](http://vislab.github.io/EEG-Clean-Tools/) | Color scheme generator |
+| [mColonFolder v1.6.0](https://ch.mathworks.com/matlabcentral/fileexchange/29854-multiple-colon) | |
+| [Gramm](https://github.com/piermorel/gramm) | |
+| [PrepPipeline v0.55.3](http://vislab.github.io/EEG-Clean-Tools/) |  |
 
 Isolated functions:
 [ShadedErrorBar XXX](https://ch.mathworks.com/matlabcentral/fileexchange/26311-raacampbell-shadederrorbar)
@@ -29,8 +29,7 @@ XXX
 | [MPT v1.661](https://sccn.ucsd.edu/wiki/MPT) |  Probabilistic approach to EEG source comparison and multi-subject inference | 
 | [BLINKER v1.1.2](http://vislab.github.io/EEG-Blinks/) | BLINKER  is an automated pipeline for detecting eye blinks in EEG and calculating various properties of these blinks | 
 | [ASR v2.0](https://github.com/sccn/clean_rawdata) | ASR (automated subspace removal) detects and rejects or removes high-amplitude non-brain ('artifact') activity (produced by eye blinks, muscle activity, sensor motion, etc.) by comparing its structure to that of known artifact-free reference data | 
-| [CleanLine v1.04](https://github.com/sccn/cleanline) | This plugin adaptively estimates and removes sinusoidal (e.g. line) noise from your ICA components
-or scalp channels using multi-tapering and a Thompson F-statistic | 
+| [CleanLine v1.04](https://github.com/sccn/cleanline) | This plugin adaptively estimates and removes sinusoidal (e.g. line) noise from your ICA components or scalp channels using multi-tapering and a Thompson F-statistic | 
 | [EEGBrowser v1.0 ](https://github.com/aojeda/EEGBrowser) | Enhanced visualization for continuous EEG recordings | 
 | [fitTwoDipoles v0.01](https://link.springer.com/chapter/10.1007%2F978-3-319-32703-7_22) | Routine for automated recommendation of ICs that may be best fit with a position-symmetric dual-dipole model | 
 | [ICLabel v1.2.4](https://sccn.ucsd.edu/wiki/ICLabel) | Automatic independent component (IC) classifcation based on the ICLabel project's classifier | 
@@ -69,15 +68,3 @@ Neurology and Director of the [Laboratory for Neurorehabilitation Science (LNS, 
 This research was supported by [Swiss National Science Foundation](http://www.snf.ch/fr/Pages/default.aspx) grants:
 * [#P0LAP1_181689](http://p3.snf.ch/project-181689) to Corentin Wicht
 * [#320030_175469](http://p3.snf.ch/project-175469) to PD Dr. Lucas Spierer
-
-Preprocessing dependencies:
--	i) CleanLine (sinusoidal, line noise; (see Mullen, 2012) 
--	ii) Artifact Subspace Reconstruction (ASR: non-stationary, high-amplitude bursts; see Mullen et al., 2015; Chang et al., 2018) 
--	iii) BLINKER (detection of eye blinks; see Kleifges et al., 2017). 
--	Independent Components Analysis (ICA) based on the following algorithms: AMICA for the decomposition (Palmer et al., 2008) and ICLabel for the automated classification of artifacts-containing independent components (Pion-Tonachini et al., 2019)
--	Channel(s) interpolation using multiquadric interpolation relying on radial basis functions (see Jäger et al., 2016; Janin, 2018; Buhmann and Jäger, 2019) 
-
-Analyses dependencies:
--	MST toolbox: EEG microstates analyses (Poulsen et al., 2018)
--	Measure Projection Toolbox: probabilistic EEG source localisation (Bigdely-Shamlo et al., 2013)
--	Ept_TFCE and Factorial Mass Univariate ERP Toolbox: Mass univariate/multivariate analyses (Groppe et al., 2011; Mensen and Khatami, 2013)
