@@ -8,8 +8,11 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 **OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
 
+*Throughout the Guided User Interfaces (GUIs) you will find additional information while pressing on the `❓` buttons.*
+
 
 ## Table of Contents
+
 
 
 ## Getting Started
@@ -22,8 +25,10 @@ The main page of the GUI will open up:
 
 ![](tools/screenshots/MainGUI.png)
 
+**At this stage, all the buttons are `RED 🔘`, meaning that no parameters have been yet defined and the script cannot run.**
 
-First, you should decide whether:
+
+Hence, first, you should decide whether:
 ```
 * You want to run the Preprocessing phase only, the Analysis phase only or both of them (bottom switch)
 * You want to define new parameters or want to load existing ones (LOAD PARAMETERS button)
@@ -31,84 +36,116 @@ First, you should decide whether:
 
 Then, you should proceed sequentially by following the sequence of buttons (see below for detailed explanations):
 ```
-1.Design
-2.Parameters
-3.Preprocessing
-4.Analyses
-START
+1.Design ➡️ 2.Parameters ➡️ 3.Preprocessing ➡️ 4.Analyses ➡️ START
 ```
+
 
 
 ### 1.Design
 
-Start by defining your experimental design, i.e. within- and/or between-subjects factor(s) and respectively levels in the corresponding fields.\
+Start by defining your experimental design, i.e. within- and/or between-subjects factor(s) and respective levels in the corresponding fields.\
 The software can accomodate up to 1 within- and 1 between-subjects factors each including 3 levels.\
 **Be careful as NO SPACES are allowed in the names**.
 
 #### Within-subject factor (WS)
-**The names chosen for each WS factor level should perfectly MATCH THE NAME OF YOUR FILES.**\
-*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*
+**The names chosen for each WS factor level should perfectly match the common names of your files.**\
+*For example, if your files contain the patterns "**_awake**.bdf" & "**_asleep**.bdf", you should define the levels correspondingly: "**awake**" & "**asleep**".*
 
 #### Between-subject factor (BS)
-**Similarly, for the BS factor you should name each level respectively to the folders in which you stored their files.**
-*For example, if you stored your EEG data separately in two folder `Experimental` and `Placebo`, you should define the levels correspondingly:"**Experimental**" and "**Placebo**".*
+**Similarly, for the BS factor you should name each level respectively to the folders in which you stored their files.**\
+*For example, if you stored your EEG data separately in two folders `Experimental` & `Placebo`, you should define the levels correspondingly: "**Experimental**" & "**Placebo**".*
 
 ![](tools/screenshots/Design.png)
 
+
 Once you are satisfied with your design, press the **`DIRECTORY`** button.\
 A number of windows will pop-up in order for you to define the path of each BS factor level's folder.\
-**Have a look at the title of each pop-up window to know which level you need to indicate a path for.** 
+**!Have a look at the title of each pop-up window to know which level you need to indicate a path for!** 
 
 ![](tools/screenshots/LoadFolder.png)
 
 
-Once done, you will see a last pop-up window asking you where you want to save **all the files exported by the software**.
+Once done, you will see a last pop-up window asking you where you want to save **all the files that will be exported**.
 
 ![](tools/screenshots/SaveFolder.png)
 
 
-When you are done with defining the respective levels' paths, press the `ALLOCATION` button to start defining which file belongs to what WS and/or BS levels.
+Then, press the `ALLOCATION` button to start defining which file belongs to what WS and/or BS levels.\
+In the top field you have the possibility to define the subjects' number that you want to include (each number should be separated by a space).\
+**DO NOT leave any empty line in the table as the software may crash.**
 
-In the top field you have the possibility to only include a selection of the files by separating each number (i.e. corresponding to the lines in the table) by a space.\
-Then, you can just type in the levels assignment for each file.\
-**DO NOT leave any line empty as the software may crash.**
-
-You also have the possibility to load existing parameters (`LOAD PARAMETERS` button, i.e. look for the `Conditions_order.xlsx` file).
+You can also load existing parameters (`LOAD PARAMETERS` button, i.e. look for the `Conditions_order.xlsx` file).
 
 When you are happy with your choice, press `SAVE`.\
-By doing so, the `Conditions_order.xlsx` file will be generated in the folder you defined for containing all the future exports.
+By doing so, the `Conditions_order.xlsx` file will generate in the folder your exports folder.
 
 ![](tools/screenshots/PartAssign.png)
 
 
 Now, you can press the `SUBJECTS` button which will allow you to select files to include and/or exclude.\ 
-*Since it is a bit redundant with the previous the `ALLOCATION GUI`, this GUI might be deleted in future releases.*\
+*Since this GUI is redundant with the previous the `ALLOCATION GUI`, it might be deleted in future releases.*\
 Again, press the `SAVE` button when you are satisfied with your selection.
 
 ![](tools/screenshots/SubjectsGUI.png)
 
-Finally, you can press the `SAVE` button when you are back to the `Design GUI` to switch to the next section
+Finally, you can press the `SAVE` button when you are back to the `Design GUI` to switch to the next section.
 
 
 
 ### 2.Parameters
 
+In the second GUI you have to define a few EEG data related parameters such as the extension (currently restricted to .bdf), sampling rate, channels, etc.\
+**Importantly, in the top left field you should indicate a name that is common to all your files (e.g. "*Subj*").**\
+This is important especially to avoid loading unrelated .bdf files that might be stored in your subfolders.\
+*You can try to leave the field empty, but the software may crash*
+
 ![](tools/screenshots/EEGParamGUI.png)
+
+Press the press the `SAVE` button to switch to the next section.
+
 
 
 ### 3.Preprocessing
 
+The third GUI provides the user with the possibility to activate/deactivate specific algorithms (e.g. sleep detection (**currently not working**), ICA, ASR, etc.)\
+Once you activate one of the algorithm (i.e. switch to `YES`), you can access their respective `Optional Parameters`below which are already filled with defaults.\
+On the right side, you can activate the computation of Global Power Spectra and define which frequencies would you like to generate topographical plots (i.e. topoplots) for each file.\
+If the `GPS swich` is on, you will be able to define the frequency bands of interest in the table below. Use the `ADD LINE` and `REMOVE LINE` button to adjust the table.
+
 ![](tools/screenshots/PreprocessingGUI.png)
 
-
-`GPS on Scalp Areas` switch
+Finally, you can also define clusters of electrodes to compute the GPS (i.e. `2. GPS on Scalp Areas`), which will generate the following pop-up window:\
+The first line enables to define the name of each cluster (separated by a space), while in each line you need to indicate the number or name of channels included in each cluster.
 
 ![](tools/screenshots/AreasList.png)
+
+Press the press the `SAVE` button to switch to the next section.
+
 
 
 ### 4.Analyses
 
+This last GUI enables you to run group and/or condition-wise statistical analyses.\
+*This part is still under construction hence only few features are currently available.*
+
+You have the possibility to redefine at this stage which files should be included in the analysis part by switching the `Subjects switch` to *Subset*.\
+This will generate another GUI enabling you to include/exclude the files. 
+
+On the right side, you can define whether to perform:
+```
+1.Frequency bands-level analyses (default is YES)
+2. MicroStates analyses (default is NO)
+3.Independent Components (IC) clustering and source localization (default is NO)
+```
+**OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING**\
+
+Both the MicroStates and the IC Clustering analyses have respective setting that can be accessed by clicking on the `Settings button`.
+
 ![](tools/screenshots/STUDYGUI.png)
+
+Press the press the `SAVE` button to go back to the main GUI.
+
+As soon as all the buttons have turned to `GREEN 🔘`, you can run the script by clicking on the `START button`.
 
 
 ## Dependencies
