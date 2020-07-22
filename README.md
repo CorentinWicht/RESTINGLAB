@@ -14,7 +14,7 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 ## Getting Started
 
-When on the [RESTINGLAB startup page](https://github.com/CorentinWicht/RESTINGLAB), start by clicking on ⬇️ Code on the top right of the screen and then Download ZIP to download the whole repository (alternatively you can also clone it). 
+When on the [RESTINGLAB startup page](https://github.com/CorentinWicht/RESTINGLAB), start by clicking on `⬇️ Code` on the top right of the screen and then `Download ZIP` to download the whole repository (alternatively you can also clone it). 
 
 To run the GUI, double click the **`MainGUI.mlapp`** file that you will find in the repository.
 
@@ -45,18 +45,18 @@ Start by defining your experimental design, i.e. within- and/or between-subjects
 The software can accomodate up to 1 within- and 1 between-subjects factors each including 3 levels.\
 **Be careful as NO SPACES are allowed in the names**.
 
-#### Within-subject factor
-**OF NOTE: the names chosen for each within-subject factor level should MATCH THE NAME OF YOUR FILES.**\
-*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*\
+#### Within-subject factor (WS)
+**The names chosen for each WS factor level should perfectly MATCH THE NAME OF YOUR FILES.**\
+*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*
 
-#### Between-subject factor
-**Similarly, for the between-subject factor you should name each level respectively to the folders in which you stored them.**
-*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*\
+#### Between-subject factor (BS)
+**Similarly, for the BS factor you should name each level respectively to the folders in which you stored their files.**
+*For example, if you stored your EEG data separately in two folder `Experimental` and `Placebo`, you should define the levels correspondingly:"**Experimental**" and "**Placebo**".*
 
 ![](tools/screenshots/Design.png)
 
 Once you are satisfied with your design, press the **`DIRECTORY`** button.\
-A number of windows will pop-up in order for you to define the path of each between-subjects factor level's folder.\
+A number of windows will pop-up in order for you to define the path of each BS factor level's folder.\
 **Have a look at the title of each pop-up window to know which level you need to indicate a path for.** 
 
 ![](tools/screenshots/LoadFolder.png)
@@ -67,14 +67,28 @@ Once done, you will see a last pop-up window asking you where you want to save *
 ![](tools/screenshots/SaveFolder.png)
 
 
-When you are done with defining the respective levels paths, `ALLOCATION` button
+When you are done with defining the respective levels' paths, press the `ALLOCATION` button to start defining which file belongs to what WS and/or BS levels.
+
+In the top field you have the possibility to only include a selection of the files by separating each number (i.e. corresponding to the lines in the table) by a space.\
+Then, you can just type in the levels assignment for each file.\
+**DO NOT leave any line empty as the software may crash.**
+
+You also have the possibility to load existing parameters (`LOAD PARAMETERS` button, i.e. look for the `Conditions_order.xlsx` file).
+
+When you are happy with your choice, press `SAVE`.\
+By doing so, the `Conditions_order.xlsx` file will be generated in the folder you defined for containing all the future exports.
 
 ![](tools/screenshots/PartAssign.png)
 
 
-`SUBJECTS` button
+Now, you can press the `SUBJECTS` button which will allow you to select files to include and/or exclude.\ 
+*Since it is a bit redundant with the previous the `ALLOCATION GUI`, this GUI might be deleted in future releases.*\
+Again, press the `SAVE` button when you are satisfied with your selection.
 
 ![](tools/screenshots/SubjectsGUI.png)
+
+Finally, you can press the `SAVE` button when you are back to the `Design GUI` to switch to the next section
+
 
 
 ### 2.Parameters
