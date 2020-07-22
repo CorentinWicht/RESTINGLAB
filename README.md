@@ -1,14 +1,19 @@
 # RESTINGLAB
 
-RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone software for (semi)automated resting-state BioSemi EEG data pre-processing.
+RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based standalone software for automated/semi-automated Resting-State [BioSemi](https://biosemi.com/) EEG data pre-processing and analyses.
+
 
 *Currently the software is in beta version which means it may still contains errors.* 
+*Contributions are thus more than welcome*.
+
 
 ## Table of Contents
+
 
 ## Getting Started
 
 ![](tools/screenshots/MainGUI.png)
+
 
 ### 1.Design
 
@@ -16,29 +21,40 @@ RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone 
 
 
 `DIRECTORY` button
+
 ![](tools/screenshots/LoadFolder.png)
 ![](tools/screenshots/SaveFolder.png)
 
+
 `ALLOCATION` button
+
 ![](tools/screenshots/PartAssign.png)
 
+
 `SUBJECTS` button
+
 ![](tools/screenshots/SubjectsGUI.png)
+
 
 ### 2.Parameters
 
 ![](tools/screenshots/EEGParamGUI.png)
 
+
 ### 3.Preprocessing
 
 ![](tools/screenshots/PreprocessingGUI.png)
 
+
 `GPS on Scalp Areas` switch
+
 ![](tools/screenshots/AreasList.png)
+
 
 ### 4.Analyses
 
 ![](tools/screenshots/STUDYGUI.png)
+
 
 ## Dependencies
 | PLUGINS | Description |
