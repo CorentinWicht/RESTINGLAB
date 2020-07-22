@@ -1,10 +1,12 @@
 # RESTINGLAB
 
-RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based standalone software for automated/semi-automated Resting-State [BioSemi](https://biosemi.com/) EEG data pre-processing and analyses.
+RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based standalone software for automated/semi-automated Resting-State EEG data pre-processing and analyses.
 
 
-*Currently the software is in beta version which means it may still contains errors.* 
+*Currently the software is in beta version which means it may still contains errors.*\
 *Contributions are thus more than welcome*.
+
+**OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
 
 
 ## Table of Contents
@@ -12,7 +14,29 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 ## Getting Started
 
+When on the [RESTINGLAB startup page]((https://github.com/CorentinWicht/RESTINGLAB), start by clicking on ⬇️ Code on the top right of the screen and then Download ZIP to download the whole repository (alternatively you can also clone it). 
+
+To run the GUI, double click the `MainGUI.mlapp` file that you will find in the repository.
+
+The main page of the GUI will open up:
+
 ![](tools/screenshots/MainGUI.png)
+
+
+First, you should decide whether:
+```
+* You want to run the Preprocessing phase only, the Analysis phase only or both of them (bottom switch)
+* You want to define new parameters or want to load existing ones (LOAD PARAMETERS button)
+```
+
+Then, you should proceed sequentially by following the sequence of buttons (see below for detailed explanations):
+```
+1.Design
+2.Parameters
+3.Preprocessing
+4.Analyses
+START
+```
 
 
 ### 1.Design
