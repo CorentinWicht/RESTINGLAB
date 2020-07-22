@@ -11,12 +11,12 @@ RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone 
 | [EEGLAB v14.1.2b](https://github.com/sccn/eeglab) | Importing the .set EEG files | 
 | [FMUT v0.5.1](https://github.com/ericcfields/FMUT) | Computation of permutation-based statistics |
 | [ept_TFCE](https://github.com/Mensen/ept_TFCE-matlab) | Computation of permutation-based statistics and TFCE correction |
-| [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | |
-| [LBPA40 atlas v2011-04-28](https://resource.loni.usc.edu/resources/atlases-downloads/) | |
+| [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | Algorithm to classify sleep stages |
+| [LBPA40 atlas v2011-04-28](https://resource.loni.usc.edu/resources/atlases-downloads/) | The LONI LBPA40 atlas is a high-quality probabilistic atlas |
 | [CubeHelix v2.0](https://github.com/DrosteEffect/CubeHelix) | Color scheme generator |
-| [mColonFolder v1.6.0](https://ch.mathworks.com/matlabcentral/fileexchange/29854-multiple-colon) | |
-| [Gramm](https://github.com/piermorel/gramm) | |
-| [PrepPipeline v0.55.3](http://vislab.github.io/EEG-Clean-Tools/) |  |
+| [mColonFolder v1.6.0](https://ch.mathworks.com/matlabcentral/fileexchange/29854-multiple-colon) | Enables concatenation of multiple colon-intervals |
+| [Gramm](https://github.com/piermorel/gramm) | Gramm is a powerful plotting toolbox which allows to quickly create complex, publication-quality figures in Matlab, and is inspired by R's ggplot2 library |
+| [PrepPipeline v0.55.3](http://vislab.github.io/EEG-Clean-Tools/) | The PREP pipeline is a standardized early-stage EEG processing pipeline that focuses on the identification of bad channels and the calculation of a robust average reference |
 
 Isolated functions:
 * [Timerwaitbar v1.02](https://ch.mathworks.com/matlabcentral/fileexchange/55985-timer-waitbar) (upgraded)
@@ -27,15 +27,13 @@ Isolated functions:
 * [textprogressbar v1.00](https://ch.mathworks.com/matlabcentral/fileexchange/28067-text-progress-bar)
 * [topoplotIndie](https://www.mikexcohen.com/)
 * [vis_artifacts](https://github.com/sccn/clean_rawdata/blob/master/vis_artifacts.m)
-* [vline v1.00](https://ch.mathworks.com/matlabcentral/fileexchange/1039-hline-and-vline)
+* [hline v1.00 & vline v1.00](https://ch.mathworks.com/matlabcentral/fileexchange/1039-hline-and-vline)
 * [Composite Colormap v1.00](https://ch.mathworks.com/matlabcentral/fileexchange/59994-composite-colormap?focused=6997081&tab=function)
-* [ShadedErrorBar XXX](https://ch.mathworks.com/matlabcentral/fileexchange/26311-raacampbell-shadederrorbar)
-* []()
-* []()
-* []()
-* []()
-* []()
-* []()
+* [ShadedErrorBar v3.00](https://ch.mathworks.com/matlabcentral/fileexchange/26311-raacampbell-shadederrorbar)
+* [getdrives v1.3.0.1](https://ch.mathworks.com/matlabcentral/fileexchange/1082-getdrives)
+* [RemoveSheet123 v1.0](https://ch.mathworks.com/matlabcentral/fileexchange/50371-removesheet123-remove-default-excel-sheets)
+* [sort_nat v1.4](https://ch.mathworks.com/matlabcentral/fileexchange/10959-sort_nat-natural-order-sort)
+* [xlsColNum2Str v1.4](https://ch.mathworks.com/matlabcentral/fileexchange/15748-excel-column-number-to-column-name)
 
 
 | EEGLAB EXTENSIONS | Description |
