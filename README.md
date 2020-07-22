@@ -14,9 +14,9 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 ## Getting Started
 
-When on the [RESTINGLAB startup page]((https://github.com/CorentinWicht/RESTINGLAB), start by clicking on ⬇️ Code on the top right of the screen and then Download ZIP to download the whole repository (alternatively you can also clone it). 
+When on the [RESTINGLAB startup page](https://github.com/CorentinWicht/RESTINGLAB), start by clicking on ⬇️ Code on the top right of the screen and then Download ZIP to download the whole repository (alternatively you can also clone it). 
 
-To run the GUI, double click the `MainGUI.mlapp` file that you will find in the repository.
+To run the GUI, double click the **`MainGUI.mlapp`** file that you will find in the repository.
 
 The main page of the GUI will open up:
 
@@ -41,16 +41,33 @@ START
 
 ### 1.Design
 
+Start by defining your experimental design, i.e. within- and/or between-subjects factor(s) and respectively levels in the corresponding fields.\
+The software can accomodate up to 1 within- and 1 between-subjects factors each including 3 levels.\
+**Be careful as NO SPACES are allowed in the names**.
+
+#### Within-subject factor
+**OF NOTE: the names chosen for each within-subject factor level should MATCH THE NAME OF YOUR FILES.**\
+*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*\
+
+#### Between-subject factor
+**Similarly, for the between-subject factor you should name each level respectively to the folders in which you stored them.**
+*For example, if your files contain the pattern "**_awake**.bdf" and "**_asleep**.bdf", you should define the levels correspondingly:"**awake**" and "**asleep**".*\
+
 ![](tools/screenshots/Design.png)
 
-
-`DIRECTORY` button
+Once you are satisfied with your design, press the **`DIRECTORY`** button.\
+A number of windows will pop-up in order for you to define the path of each between-subjects factor level's folder.\
+**Have a look at the title of each pop-up window to know which level you need to indicate a path for.** 
 
 ![](tools/screenshots/LoadFolder.png)
+
+
+Once done, you will see a last pop-up window asking you where you want to save **all the files exported by the software**.
+
 ![](tools/screenshots/SaveFolder.png)
 
 
-`ALLOCATION` button
+When you are done with defining the respective levels paths, `ALLOCATION` button
 
 ![](tools/screenshots/PartAssign.png)
 
