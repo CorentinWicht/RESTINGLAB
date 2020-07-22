@@ -22,5 +22,4 @@ Error when opening 2.EEG parameters (when parameters are already loaded)
 • Problems to solve in the future:
 
 Find a way to implement ASR-interpolation for BLINKER
-Implement the method for 3D electrode localisation
 Find a way to run the sleep detection algorithm
