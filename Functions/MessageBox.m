@@ -1,3 +1,9 @@
+% Author: Corentin Wicht, LCNS, 2018
+% corentin.wicht@unifr.ch
+
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 function Fig=MessageBox(Text,Title,FontSize,Width,Height)
 % This function is an updated version of msgbox () enabling to resize the
 % message box and the text inside

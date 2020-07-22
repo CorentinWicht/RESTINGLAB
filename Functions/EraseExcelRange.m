@@ -15,6 +15,9 @@ function EraseExcelRange(XlsFile, XlsRange)
 % Author: Corentin Wicht, LCNS, 2018
 % corentin.wicht@unifr.ch
 
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 % Name of the excel file
 filename = XlsFile;
 % Open Excel as a COM Automation server

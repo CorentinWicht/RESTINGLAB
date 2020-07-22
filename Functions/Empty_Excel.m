@@ -22,6 +22,9 @@ function Empty_Excel(Directory,Extension,ImportParameters)
 
 % Author: Corentin Wicht, LCNS, 2018
 % corentin.wicht@unifr.ch
+
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
     
 
 % Include possibility to have more than 1 extensions!!!

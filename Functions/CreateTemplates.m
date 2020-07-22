@@ -20,6 +20,9 @@ function CreateTemplates(PartList,Conditions_Names,FreqNames,Channels,ExcelDirec
 % Author: Corentin Wicht, LCNS, 2018
 % corentin.wicht@unifr.ch
 
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 %% MISSING TEMPLATES
 
 % List of all templates

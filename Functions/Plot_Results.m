@@ -1,3 +1,10 @@
+% Author: Corentin Wicht, LCNS, 2019
+% - corentin.wicht@unifr.ch
+% - https://github.com/CorentinWicht
+
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 %% Function to plot t-test results
 
 function Plot_Results(EEG,Design,Spect,varargin)

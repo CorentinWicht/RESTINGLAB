@@ -21,6 +21,9 @@ function MaxString=Adapt_Width(StringList)
 % Author: Corentin Wicht, LCNS, 2018
 % corentin.wicht@unifr.ch
 
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 % Determines the size of the longest string to display in uitable
 PixelString=zeros(1,length(StringList));
 for i=1:length(StringList)

@@ -57,6 +57,9 @@ function [Results,Cluster_Results]=Perm_Ttest(AllData,Design,EEG,varargin)
 % - corentin.wicht@unifr.ch
 % - https://github.com/CorentinWicht
 
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
+
 %% Set Defaults
 
 N_Permutes  = 5000; % default number of permutations

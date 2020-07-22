@@ -25,7 +25,8 @@ function Log = MicroStates(STUDY,varargin)
 % - corentin.wicht@unifr.ch
 % - https://github.com/CorentinWicht
 
-
+% This work is licensed under a Creative Commons Attribution-NonCommercial
+% 4.0 International License (CC BY-NC)
 
 %% Set Defaults
 ExcelDirectory = pwd;
