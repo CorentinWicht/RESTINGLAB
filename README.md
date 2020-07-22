@@ -11,7 +11,7 @@ RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone 
 | [EEGLAB v14.1.2b](https://github.com/sccn/eeglab) | Importing the .set EEG files | 
 | [FMUT v0.5.1](https://github.com/ericcfields/FMUT) | Computation of permutation-based statistics |
 | [ept_TFCE](https://github.com/Mensen/ept_TFCE-matlab) | Computation of permutation-based statistics and TFCE correction |
-| [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | |
+| [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | Algorithm to classify sleep stages |
 | [LBPA40 atlas v2011-04-28](https://resource.loni.usc.edu/resources/atlases-downloads/) | The LONI LBPA40 atlas is a high-quality probabilistic atlas |
 | [CubeHelix v2.0](https://github.com/DrosteEffect/CubeHelix) | Color scheme generator |
 | [mColonFolder v1.6.0](https://ch.mathworks.com/matlabcentral/fileexchange/29854-multiple-colon) | Enables concatenation of multiple colon-intervals |
