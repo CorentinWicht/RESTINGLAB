@@ -4,6 +4,41 @@ RESTINGLAB is an open-source EEGLAB-based (Delorme and Makeig, 2004) standalone 
 
 *Currently the software is in beta version which means it may still contains errors.* 
 
+## Table of Contents
+
+## Getting Started
+
+![](tools/screenshots/MainGUI.png)
+
+### 1.Design
+
+![](tools/screenshots/Design.png)
+
+
+`DIRECTORY` button
+![](tools/screenshots/LoadFolder.png)
+![](tools/screenshots/SaveFolder.png)
+
+`ALLOCATION` button
+![](tools/screenshots/PartAssign.png)
+
+`SUBJECTS` button
+![](tools/screenshots/SubjectsGUI.png)
+
+### 2.Parameters
+
+![](tools/screenshots/EEGParamGUI.png)
+
+### 3.Preprocessing
+
+![](tools/screenshots/PreprocessingGUI.png)
+
+`GPS on Scalp Areas` switch
+![](tools/screenshots/AreasList.png)
+
+### 4.Analyses
+
+![](tools/screenshots/STUDYGUI.png)
 
 ## Dependencies
 | PLUGINS | Description |
