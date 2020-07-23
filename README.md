@@ -6,12 +6,30 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 *Currently the software is in beta version which means it may still contains errors.*\
 *Contributions are thus more than welcome*.
 
-**OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
+**⚠️ OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
 
 *Throughout the Guided User Interfaces (GUIs) you will find additional information while pressing on the* `❓ buttons`.
 
 
 ## Table of Contents
+
+* [Getting Started](#getting-started)
+  + [1.Design](#1design)
+    - [1.1.Participants Assignment](#11participants-assignment)
+    - [1.2.Subjects](#12subjects)
+  + [2.Parameters](#2parameters)
+  + [3.Preprocessing](#3preprocessing)
+    - [3.1.AreasList](#31areaslist)
+  + [4.Analyses](#4analyses)
+  + [Exports](#exports)
+* [Dependencies](#dependencies)
+* [Authors](#authors)
+* [License](#license)
+* [Acknowledgements](#acknowledgements)
+* [Fundings](#fundings)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 
 
 
@@ -47,11 +65,11 @@ Start by defining your experimental design, i.e. within- and/or between-subjects
 The software can accomodate up to 1 within- and 1 between-subjects factors each including 3 levels.\
 **Be careful as NO SPACES are allowed in the names**.
 
-#### Within-subject factor (WS)
+**Within-subject factor (WS)**
 **The names chosen for each WS factor level should perfectly match the common names of your files.**\
 *For example, if your files contain the patterns "**_awake**.bdf" & "**_asleep**.bdf", you should define the levels correspondingly: "**awake**" & "**asleep**".*
 
-#### Between-subject factor (BS)
+**Between-subject factor (BS)**
 **Similarly, for the BS factor you should name each level respectively to the folders in which you stored their files.**\
 *For example, if you stored your EEG data separately in two folders `Experimental` & `Placebo`, you should define the levels correspondingly: "**Experimental**" & "**Placebo**".*
 
@@ -70,6 +88,7 @@ Once done, you will see a last pop-up window asking you where you want to save *
 ![](tools/screenshots/SaveFolder.png)
 
 
+#### 1.1.Participants Assignment 
 Then, press the `ALLOCATION` button to start defining which file belongs to what WS and/or BS levels.\
 In the top field you have the possibility to define the subjects' number that you want to include (each number should be separated by a space).\
 **DO NOT leave any empty line in the table as the software may crash.**
@@ -82,6 +101,7 @@ By doing so, the `Conditions_order.xlsx` file will generate in the folder your e
 ![](tools/screenshots/PartAssign.png)
 
 
+#### 1.2.Subjects 
 Now, you can press the `SUBJECTS` button which will allow you to select files to include and/or exclude.\ 
 *Since this GUI is redundant with the previous the `ALLOCATION GUI`, it might be deleted in future releases.*\
 Again, press the `SAVE` button when you are satisfied with your selection.
@@ -117,6 +137,9 @@ If the `GPS swich` is on, you will be able to define the frequency bands of inte
 Finally, you can also define clusters of electrodes to compute the GPS (i.e. `2. GPS on Scalp Areas`), which will generate the following pop-up window:\
 The first line enables to define the name of each cluster (separated by a space), while in each line you need to indicate the number or name of channels included in each cluster.
 
+
+#### 3.1.AreasList
+
 ![](tools/screenshots/AreasList.png)
 
 Press the press the `SAVE` button to switch to the next section.
@@ -137,7 +160,7 @@ On the right side, you can define whether to perform:
 2. MicroStates analyses (default is NO)
 3.Independent Components (IC) clustering and source localization (default is NO)
 ```
-**OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING.**
+**⚠️ OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING.**
 
 Both the MicroStates and the IC Clustering analyses have respective setting that can be accessed by clicking on the `Settings button`.
 
@@ -151,25 +174,29 @@ As soon as all the buttons have turned to `GREEN 🔘`, you can run the script b
 
 ### Exports
 
-The structure of the exportation folders will always be the same independent of your selection:
+The structure of the exportation folders will always be the same independent of your selection (i.e. some folders might remain empty):
 
 ```
 📁 [Save Folder]
+ ↳ 📁 [Group] 
+ ↳ 📋 RESTINGLablog_DD_MM_YYYY-HH_MM.txt
  ↳ 📁 [Excel]
     ↳ 📁 [DD_MM_YYYY-HH_MM]
        ↳ 📋 Conditions_order.xlsx
        ↳ 📋 AreaAmplitudeFrequency.xlsx
        ↳ 📋 AsleepAwakeTrials.xlsx
        ↳ 📋 GPS_Frequency.xlsx
-       ↳ 📋 InterpChannelsResting.xlsx
-       ↳ 📋 RejectedComponentsResting.xlsx
+       ↳ 📋 InterpChannelsCondition.xlsx
+       ↳ 📋 RejectedComponentsCondition.xlsx
  ↳ 📁 [Exports]
     ↳ 📁 [DD_MM_YYYY-HH_MM]
        ↳ 📁 [ICClust]
+          ↳ 👷 UNDER CONSTRUCTION...
           ↳ 📁 [DomainX]
              ↳ 📊 SourceClustX_STUDY.bmp
              ↳ 📊 SourceClustX_STUDY.fig
              ↳ 📋 ICClustOutput_Domain4.txt
+             ↳ 👷 UNDER CONSTRUCTION...
        ↳ 📁 [MicroStatesSegment]
           ↳ 📁 [VersionX]
              ↳ 📊 GFP_SX_condition_vX.bmp
@@ -218,29 +245,32 @@ vX / VersionX    = Version of analysis number X
 SourceClustX     = Cluster of significant results number X
 DomainX          = Brain spatial domain number X
 DD_MM_YYYY-HH_MM = Date and time of analysis
+📁 [Group]       = This folder will reproduce the structure of your 
+                    data folders and will include the desired .set files 
 ------------------------------------------------------------------  
 ```
 | FILES | Content |
 | ------ | ------ |
-| Conditions_order.xlsx | |
-| AreaAmplitudeFrequency.xlsx | |
-| AsleepAwakeTrials.xlsx | |
-| GPS_Frequency.xlsx | |
-| InterpChannelsResting.xlsx | |
-| RejectedComponentsResting.xlsx | |
-| ICClustOutput_Domain4.txt | |
-| MicroStateRes_SX_condition_vX.mat | |
-| SX_Frequency_Group.ep | |
-| AnalysesGUI.mat | |
-| EEGParamGUI.mat | |
-| GUIDesign.mat | |
-| GUIPartList.mat | |
-| GUIPreProcessing.mat | |
-| GUISubjects.mat | |
-| StudyGUI.mat | |
-| SpectralData.mat | |
-| STUDY.study | |
-| STUDY_Clustered.study | |
+| RESTINGLablog_DD_MM_YYYY-HH_MM.txt | Log generated for each run of the script containing a complete summary of all selected parameters and included files |
+| Conditions_order.xlsx | List of subjects and condition/group assignment (WS and/or BS factors levels) |
+| AreaAmplitudeFrequency.xlsx | List of subjects and associated maximum/minimum GPS values and cluster (optional, see [`AreasList`](#31areaslist)) |
+| AsleepAwakeTrials.xlsx | List of subjects and associated number of Xseconds (user-defined in [GUI](#3preprocessing)) asleep and awake epochs |
+| GPS_Frequency.xlsx | List of subjects and GPS values for each EEG channel (columns). There is one excel file for each frequency band of interest and inside each file there is one sheet for each WS factor level. |
+| InterpChannelsCondition.xlsx | List of subjects and related channels label(number) that were automatically interpolated |
+| RejectedComponentsCondition.xlsx | List of subjects and related independent components (ICs) that were semi-automatically rejected |
+| ICClustOutput_Domain4.txt | Text file informing about anatomical information and voxels inside one cluster showing significant group and/or condition differences |
+| MicroStateRes_SX_condition_vX.mat | Data matrix containing all the outputs generated from the main [MST](https://github.com/atpoulsen/Microstate-EEGlab-toolbox) functions |
+| SX_Frequency_Group.ep | 1x64 matrix containing the time-averaged GPS for each of the 64 channels, for each frequency band of interest and condition. The .ep format can be opened in [STEN](https://zenodo.org/record/1167723#.Wuhxtn--ltQ) and [CARTOOL](https://sites.google.com/site/cartoolcommunity/), resp. to perform statistics and apply inverse source solutions |
+| AnalysesGUI.mat | Data matrix generated by the [Preprocessing GUI](#3preprocessing) |
+| EEGParamGUI.mat | Data matrix generated by the [Parameters GUI](#2parameters) |
+| GUIDesign.mat | Data matrix generated by the [Design GUI](#1design) |
+| GUIPartList.mat | Data matrix generated by the [Design GUI](#11participants-assignment) |
+| GUIPreProcessing.mat | Data matrix generated by the [Preprocessing GUI](#3preprocessing) |
+| GUISubjects.mat | Data matrix generated by the [Design GUI](#12subjects) |
+| StudyGUI.mat | Data matrix generated by the [Analyses GUI](#4analyses) |
+| SpectralData.mat | Data matrix containing the power spectra data following EEGLAB format, namely *lines = WS levels & columns = BS levels*. Inside each cell, the spectral data is formatted as follows: *frequency bins X channels X subjects* |
+| STUDY.study | [EEGLAB STUDY structure](https://sccn.ucsd.edu/wiki/Chapter_07:_EEGLAB_Study_Data_Structures) for the group and/or condition-levels analyses |
+| STUDY_Clustered.study | [EEGLAB STUDY structure](https://sccn.ucsd.edu/wiki/Chapter_07:_EEGLAB_Study_Data_Structures) for the IC clustering analysis |
 
 
 
@@ -290,7 +320,7 @@ Isolated functions:
 * [xlsColNum2Str v1.4](https://ch.mathworks.com/matlabcentral/fileexchange/15748-excel-column-number-to-column-name)
 
 
-The dependencies are already included in the [functions/Dependencies](functions/Dependencies) folder.
+The dependencies are already included in the [Dependencies](Functions/Dependencies) folder.
 
 ## Authors
 [**Corentin Wicht**](https://www.researchgate.net/profile/Wicht_Corentin)\
