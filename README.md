@@ -219,6 +219,7 @@ The structure of the exportation folders will always be the same independent of 
           ↳ 📊 DipFitX_Group.bmp
           ↳ 📁 [LabelDipoles]
              ↳ 📊 LabelsFitX_Group.bmp
+             ↳ 📊 LabelsFitBarX_Group.bmp
  ↳ 📁 [Parameters]
     ↳ 📁 [DD_MM_YYYY-HH_MM]
        ↳ 💾 AnalysesGUI.mat
