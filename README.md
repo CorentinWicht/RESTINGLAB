@@ -204,6 +204,7 @@ The structure of the exportation folders will always be the same independent of 
              ↳ 📁 [Fig]
                 ↳ 📊 GFP_SX_condition_vX.fig
        ↳ 📁 [SleepNoSleep]
+          ↳ 👷 UNDER CONSTRUCTION...
           ↳ 📊 WaveletMorletSleep_X_condition.bmp
        ↳ 📁 [SourceLocalisation]
           ↳ 📁 [Frequency]
