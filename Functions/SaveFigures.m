@@ -18,7 +18,7 @@ function SaveFigures(fig,Directory,Col,Formats,Close)
 % Optional input
 %   Col       = Defines background color (e.g. 'b' for blue) (default is
 %               white)
-%   Formats   = Defines the format of export ('pdf', 'bmp' or 'eps')
+%   Formats   = Defines the format of export ('pdf', 'bmp', 'eps', 'fig', 'all')
 %               (default is all three)
 %   Close     = Force to close the current figure (def = 1, i.e. Yes).
 
@@ -45,26 +45,29 @@ set(fig,'color',Col);
 fig.InvertHardcopy = 'off';
 
     if strcmpi(Formats,'All') 
-        % Saves the figure as as .pdf version
         print(fig,backslash(Directory),'-dpdf','-r0'); 
+        set(fig, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
+        saveas(fig,backslash(Directory),'bmp');
+        saveas(fig,backslash(Directory),'epsc');
+    elseif strcmpi(Formats,'pdf') 
+        % Saves the figure as .pdf format 
+        print(fig,backslash(Directory),'-dpdf','-r0'); 
+    elseif strcmpi(Formats,'bmp')
         % Saves the figure as .bmp format 
         set(fig, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
         saveas(fig,backslash(Directory),'bmp');
-        % Saves the topoplot as .eps format 
-        saveas(fig,backslash(Directory),'epsc');
-    elseif strcmpi(Formats,'pdf') 
-        print(fig,backslash(Directory),'-dpdf','-r0'); 
-    elseif strcmpi(Formats,'bmp')
-        set(fig, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
-        saveas(fig,backslash(Directory),'bmp');
     elseif strcmpi(Formats,'eps') 
-        % Saves the topoplot as .eps format 
+        % Saves the figure as .eps format 
         set(fig, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
         saveas(fig,backslash(Directory),'epsc');
+    elseif strcmpi(Formats,'fig') 
+        % Saves the figure as MATLAB .fig format 
+        set(fig, 'Units', 'Normalized', 'OuterPosition', [0 0 1 1]);
+        savefig(fig,backslash(Directory));
     end
 
-% Closes the current figure
-if Close
-    close gcf
-end
+    % Closes the current figure
+    if Close
+        close gcf
+    end
 end

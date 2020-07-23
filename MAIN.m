@@ -84,23 +84,21 @@ if ispc && ~Result && strcmpi(ICA,'yes')
     % Saving data from web & installing
     if str2double(cell2mat(regexp(ComputerType,'\d*','Match')))==64 
         if ~exist([CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi'],'file')       
-            urlwrite('http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi',...
-                [CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi']);
+            websave([CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-x86-64.msi'],...
+                'http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-x86-64.msi');
         end
         system([CurrentPWD '"\Mpich2_1.4\mpich2-1.4-win-x86-64.msi"']);
     elseif str2double(cell2mat(regexp(ComputerType,'\d*','Match')))==32 
         if ~exist([CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'],'file')   
-            urlwrite('http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi',...
-                [CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'])
+            websave([CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'],...
+                'http://www.mpich.org/static/downloads/1.4/mpich2-1.4-win-ia32.msi');
         end
         system([CurrentPWD '\Mpich2_1.4\mpich2-1.4-win-ia32.msi'])
     end
  
     % Delete temporary directory
     cd(CurrentPWD)
-    % ERROR HERE !! 
-    % rmdir('Mpich2_1.4','s')
-    
+    rmdir('Mpich2_1.4','s')
 end
 
 %% DESIGN / EEG PARAMETERS
@@ -264,8 +262,11 @@ end
 
 % Only keeping subjects selected for analysis
 j=1;t=1;
-% TempSubjectslist=cellfun(@(x) str2double(x),TempSubjectslist);
-TempSubjectslist=cell2mat(TempSubjectslist); % Error since first line is integer and not string anymore ?!
+if isinteger(TempSubjectslist{1})
+TempSubjectslist=cell2mat(TempSubjectslist); 
+else; TempSubjectslist=cellfun(@(x) str2double(x),TempSubjectslist); 
+end
+
 for k=1:length(TempSubjectslist)
     for l=1:size(ProcessData,2) % Number of sessions  
         if ProcessData{k,l}
@@ -1033,16 +1034,16 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % https://github.com/kevmtan/EEGpipeline/wiki/Stage-2-%E2%80%93-ICA-&-source-localization#ICA_procedure
                 % https://sccn.ucsd.edu/wiki/A08:_DIPFIT#Setting_up_DIPFIT_model_and_preferences
                 % Calls the function Automated_Dipfit
-                EEG= Automated_Dipfit(EEG);
+                EEG=Automated_Dipfit(EEG);
 
                 % Exporting Dipole Fitting Figures
                 ExportString={'LabelDipoles\\LabelsFit%d_%s','DipFit%d_%s',...
                     'LabelDipoles\\LabelsFitBar%d_%s'};
-                Color={'w','k','w'};
+                Color={'w','k','w'}; ExportFormat = {'bmp','fig','bmp'};
                 for k=length(findobj('type','figure'))-2:length(findobj('type','figure'))
                     SaveFigures(figure(k),[TopoDipFitDirectory...
                         sprintf(ExportString{k},Subjectslist(g),...
-                        Conditions_OrderCell{Pos,WhichCond})],Color{k},'bmp');
+                        Conditions_OrderCell{Pos,WhichCond})],Color{k},ExportFormat{k});
                 end
 
                 % Save DATASET 2 - ICA COMPUTED

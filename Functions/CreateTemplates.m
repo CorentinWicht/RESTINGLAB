@@ -148,5 +148,5 @@ end
 
 % Return message indicating the number of templates that were created
 fprintf(['%d new template(s) has/have been generated in the following folder:'...
-    newline '%s'],NumTemp,ExcelDirectory);
+    newline '%s' newline],NumTemp,ExcelDirectory);
 end
