@@ -211,8 +211,8 @@ if strcmpi(ConfirmReject,'Yes')
 
                 % Move figures all over the screen
                 ScreenPos={'northwest','northeast','southeast','southwest'};
-                for k=1:length(findobj('type','figure'))        
-                    movegui(figure(k),ScreenPos{k})
+                for f=1:length(findobj('type','figure'))        
+                    movegui(figure(f),ScreenPos{f})
                 end
 
                 % Matrix to integrate in the following uitable
@@ -678,7 +678,8 @@ for k = 1:length(STUDY.measureProjection.(Measure).projection.domain)
     username=getenv('USERNAME');
 
     % Creating the log file
-    fid = fopen([ExportPath sprintf('Domain%d',k) '\' sprintf('ICClustOutput_Domain%d',k) '.txt'],'w');    
+%     fid = fopen([ExportPath sprintf('Domain%d',k) '\' sprintf('ICClustOutput_Domain%d',k) '.txt'],'w');  
+    fid = fopen([ExportPath sprintf('Domain%d',k) '\ICClustOutput.txt'],'w');    
     
     % User name
     fprintf(fid,'%s\r\n',['Windows username : ' username]);

@@ -104,7 +104,7 @@ if ispc && ~Result && strcmpi(ICA,'yes')
 end
 
 %% DESIGN / EEG PARAMETERS
-% Within-subject factor(s)
+% Between-subject factor(s)
 BetweenFactors=BetweenFactors(~cellfun('isempty',BetweenFactors));
 if ~isempty(BetweenFactors)
     for k=1:length(BetweenFactors)
@@ -115,7 +115,7 @@ else
     Groups_Names = Groups_Names(end);
 end
 
-% Between-subject factor(s)
+% Within-subject factor(s)
 WithinFactors=WithinFactors(~cellfun('isempty',WithinFactors));
 if ~isempty(WithinFactors)
     for k=1:length(WithinFactors)

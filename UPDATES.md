@@ -12,6 +12,7 @@ Separated the channels rejection from interpolation and re-referencing, followin
 
 • TO DO
 
+DipFit.bmp figures should be saved as .fig and not .bmp (useless)
 Use triggers to restrain data length (!)
 Check the source neighbouring matrix
 Find a solution for statistics on frequency bins (3rd figures)
