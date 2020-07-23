@@ -6,7 +6,7 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 *Currently the software is in beta version which means it may still contains errors.*\
 *Contributions are thus more than welcome*.
 
-**OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
+**⚠️ OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
 
 *Throughout the Guided User Interfaces (GUIs) you will find additional information while pressing on the* `❓ buttons`.
 
@@ -160,7 +160,7 @@ On the right side, you can define whether to perform:
 2. MicroStates analyses (default is NO)
 3.Independent Components (IC) clustering and source localization (default is NO)
 ```
-**OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING.**
+**⚠️ OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING.**
 
 Both the MicroStates and the IC Clustering analyses have respective setting that can be accessed by clicking on the `Settings button`.
 
