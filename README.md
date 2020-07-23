@@ -8,7 +8,7 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 **OF NOTE: This software can currently only import [BioSemi](https://biosemi.com/) 64-channels EEG files.**
 
-*Throughout the Guided User Interfaces (GUIs) you will find additional information while pressing on the `❓` buttons.*
+*Throughout the Guided User Interfaces (GUIs) you will find additional information while pressing on the* `❓ buttons`.
 
 
 ## Table of Contents
@@ -137,7 +137,7 @@ On the right side, you can define whether to perform:
 2. MicroStates analyses (default is NO)
 3.Independent Components (IC) clustering and source localization (default is NO)
 ```
-**OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING**\
+**OF NOTE, the `MicroStates analysis` is running but needs additionnal testing and the `IC clustering analysis` is currently NOT WORKING.**
 
 Both the MicroStates and the IC Clustering analyses have respective setting that can be accessed by clicking on the `Settings button`.
 
@@ -146,6 +146,102 @@ Both the MicroStates and the IC Clustering analyses have respective setting that
 Press the press the `SAVE` button to go back to the main GUI.
 
 As soon as all the buttons have turned to `GREEN 🔘`, you can run the script by clicking on the `START button`.
+
+
+
+### Exports
+
+The structure of the exportation folders will always be the same independent of your selection:
+
+```
+📁 [Save Folder]
+ ↳ 📁 [Excel]
+    ↳ 📁 [DD_MM_YYYY-HH_MM]
+       ↳ 📋 Conditions_order.xlsx
+       ↳ 📋 AreaAmplitudeFrequency.xlsx
+       ↳ 📋 AsleepAwakeTrials.xlsx
+       ↳ 📋 GPS_Frequency.xlsx
+       ↳ 📋 InterpChannelsResting.xlsx
+       ↳ 📋 RejectedComponentsResting.xlsx
+ ↳ 📁 [Exports]
+    ↳ 📁 [DD_MM_YYYY-HH_MM]
+       ↳ 📁 [ICClust]
+          ↳ 📁 [DomainX]
+             ↳ 📊 SourceClustX_STUDY.bmp
+             ↳ 📊 SourceClustX_STUDY.fig
+             ↳ 📋 ICClustOutput_Domain4.txt
+       ↳ 📁 [MicroStatesSegment]
+          ↳ 📁 [VersionX]
+             ↳ 📊 GFP_SX_condition_vX.bmp
+             ↳ 💾 MicroStateRes_SX_condition_vX.mat
+             ↳ 📁 [Fig]
+                ↳ 📊 GFP_SX_condition_vX.fig
+       ↳ 📁 [SleepNoSleep]
+          ↳ 📊 WaveletMorletSleep_X_condition.bmp
+       ↳ 📁 [SourceLocalisation]
+          ↳ 📁 [Frequency]
+             ↳ 💾 SX_Frequency_Group.ep
+       ↳ 📁 [Topoplots]
+          ↳ 📊 PowerSpectrumX_Group.bmp
+       ↳ 📁 [TopoplotsDipFit]
+          ↳ 📊 DipFitX_Group.bmp
+          ↳ 📁 [LabelDipoles]
+             ↳ 📊 LabelsFitX_Group.bmp
+ ↳ 📁 [Parameters]
+    ↳ 📁 [DD_MM_YYYY-HH_MM]
+       ↳ 💾 AnalysesGUI.mat
+       ↳ 💾 EEGParamGUI.mat
+       ↳ 💾 GUIDesign.mat
+       ↳ 💾 GUIPartList.mat
+       ↳ 💾 GUIPreProcessing.mat
+       ↳ 💾 GUISubjects.mat
+       ↳ 💾 StudyGUI.mat
+ ↳ 📁 [STUDY]
+    ↳ 📁 [DD_MM_YYYY-HH_MM]
+       ↳ 💾 SpectralData.mat
+       ↳ 🧠 STUDY.study
+       ↳ 🧠 STUDY_Clustered.study
+       ↳ 📊 Boxplot_Frequency_STUDY_1.bmp
+       ↳ 📊 ChanAVG_Group_STUDY.bmp
+       ↳ 📊 Topoplots_STUDY_Frequency.bmp
+       ↳ 📊 WholeSpect_STUDY.bmp
+       ↳ 📁 [MicroStates]
+          ↳ 📊 ClusterTopo_Group_STUDY_vX.bmp
+          ↳ 📊 FitMeasures_OH_STUDY_vX.bmp
+         
+------------------------------------------------------------------         
+Group            = Names of the levels of the BS factor
+condition        = Names of the levels of the WS factor
+Frequency        = Names that you gave to the frequency bands of interest
+X                = Subject number X
+vX / VersionX    = Version of analysis number X
+SourceClustX     = Cluster of significant results number X
+DomainX          = Brain spatial domain number X
+DD_MM_YYYY-HH_MM = Date and time of analysis
+------------------------------------------------------------------  
+```
+| FILES | Content |
+| ------ | ------ |
+| Conditions_order.xlsx | |
+| AreaAmplitudeFrequency.xlsx | |
+| AsleepAwakeTrials.xlsx | |
+| GPS_Frequency.xlsx | |
+| InterpChannelsResting.xlsx | |
+| RejectedComponentsResting.xlsx | |
+| ICClustOutput_Domain4.txt | |
+| MicroStateRes_SX_condition_vX.mat | |
+| SX_Frequency_Group.ep | |
+| AnalysesGUI.mat | |
+| EEGParamGUI.mat | |
+| GUIDesign.mat | |
+| GUIPartList.mat | |
+| GUIPreProcessing.mat | |
+| GUISubjects.mat | |
+| StudyGUI.mat | |
+| SpectralData.mat | |
+| STUDY.study | |
+| STUDY_Clustered.study | |
+
 
 
 ## Dependencies
