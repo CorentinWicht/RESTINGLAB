@@ -179,6 +179,10 @@ The structure of the exportation folders will always be the same independent of 
 ```
 📁 [Save Folder]
  ↳ 📁 [Group] 
+    ↳ 🧠 design1_X_Group.datspec
+    ↳ 🧠 FolderName_Condition_ExportSelection.fdt
+    ↳ 🧠 FolderName_Condition_ExportSelection.set
+    ↳ 🧠 FolderName_Condition_Preprocessed.bdf
  ↳ 📋 RESTINGLablog_DD_MM_YYYY-HH_MM.txt
  ↳ 📁 [Excel]
     ↳ 📁 [DD_MM_YYYY-HH_MM]
@@ -240,6 +244,8 @@ The structure of the exportation folders will always be the same independent of 
 ------------------------------------------------------------------         
 Group            = Names of the levels of the BS factor
 condition        = Names of the levels of the WS factor
+FolderName       = Name of the subject folder
+ExportSelection  = Name of the .set files you decided to save (see 2.Parameters)
 Frequency        = Names that you gave to the frequency bands of interest
 X                = Subject number X
 vX / VersionX    = Version of analysis number X
@@ -272,6 +278,10 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 | SpectralData.mat | Data matrix containing the power spectra data following EEGLAB format, namely *lines = WS levels & columns = BS levels*. Inside each cell, the spectral data is formatted as follows: *frequency bins X channels X subjects* |
 | STUDY.study | [EEGLAB STUDY structure](https://sccn.ucsd.edu/wiki/Chapter_07:_EEGLAB_Study_Data_Structures) for the group and/or condition-levels analyses |
 | STUDY_Clustered.study | [EEGLAB STUDY structure](https://sccn.ucsd.edu/wiki/Chapter_07:_EEGLAB_Study_Data_Structures) for the IC clustering analysis |
+| design1_X_Group.datspec | [Spectrum data for data channels](https://sccn.ucsd.edu/wiki/Chapter_07:_EEGLAB_Study_Data_Structures#STUDY_data_files) |
+| FolderName_Condition_ExportSelection.fdt | Float data containing raw data |
+| FolderName_Condition_ExportSelection.set | Meta-information (number of channels, sampling frequency etc...) |
+| FolderName_Condition_Preprocessed.bdf | [BioSemi](https://biosemi.com/) EEG file generated after preprocessing and which can be easily open in [CARTOOL](https://sites.google.com/site/cartoolcommunity/) |
 
 
 
