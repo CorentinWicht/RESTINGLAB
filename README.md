@@ -15,8 +15,6 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 * [Getting Started](#getting-started)
   + [1.Design](#1design)
-    - [Within-subject factor (WS)](#within-subject-factor--ws-)
-    - [Between-subject factor (BS)](#between-subject-factor--bs-)
     - [1.1.Participants Assignment](#11participants-assignment)
     - [1.2.Subjects](#12subjects)
   + [2.Parameters](#2parameters)
@@ -67,11 +65,11 @@ Start by defining your experimental design, i.e. within- and/or between-subjects
 The software can accomodate up to 1 within- and 1 between-subjects factors each including 3 levels.\
 **Be careful as NO SPACES are allowed in the names**.
 
-#### Within-subject factor (WS)
+**Within-subject factor (WS)**
 **The names chosen for each WS factor level should perfectly match the common names of your files.**\
 *For example, if your files contain the patterns "**_awake**.bdf" & "**_asleep**.bdf", you should define the levels correspondingly: "**awake**" & "**asleep**".*
 
-#### Between-subject factor (BS)
+**Between-subject factor (BS)**
 **Similarly, for the BS factor you should name each level respectively to the folders in which you stored their files.**\
 *For example, if you stored your EEG data separately in two folders `Experimental` & `Placebo`, you should define the levels correspondingly: "**Experimental**" & "**Placebo**".*
 
