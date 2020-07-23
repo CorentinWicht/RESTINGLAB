@@ -315,7 +315,7 @@ Isolated functions:
 * [xlsColNum2Str v1.4](https://ch.mathworks.com/matlabcentral/fileexchange/15748-excel-column-number-to-column-name)
 
 
-The dependencies are already included in the [functions/Dependencies](functions/Dependencies) folder.
+The dependencies are already included in the [Dependencies](Functions/Dependencies) folder.
 
 ## Authors
 [**Corentin Wicht**](https://www.researchgate.net/profile/Wicht_Corentin)\
