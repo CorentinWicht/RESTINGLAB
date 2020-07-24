@@ -1,4 +1,4 @@
-20.07.2020
+﻿20.07.2020
 
 • v0.62
 
@@ -10,12 +10,14 @@ Implemented frequency resolution smaller than integer (e.g. 0.5)
 Solved the problem of the 0 frequency bin when using pwelch (i.e. DC Offset : https://github.com/sccn/eeglab/issues/101)
 Separated the channels rejection from interpolation and re-referencing, following the pipeline from: https://www.frontiersin.org/articles/10.3389/fnins.2018.00097/full. Now bad channels interpolation and robust referencing are performed at the end of the script (after optional ICA).
 
-• TO DO
+• v0.62.1
+DipFit.bmp figures are now saved as .fig and not .bmp (useless)
+Now using Fieldtrip MonteCarlo Permutations with Max Cluster correction for statistics on frequency bins (3rd figures)
 
-DipFit.bmp figures should be saved as .fig and not .bmp (useless)
+
+• TO DO
 Use triggers to restrain data length (!)
 Check the source neighbouring matrix
-Find a solution for statistics on frequency bins (3rd figures)
 Include in GUI possibility to adjust the IC rejection criteria for MPT
 Finish the MPT source localisation script
 Implement a try-catch for excel template generation! The software crashes if the name of sheets is changed and files already exist

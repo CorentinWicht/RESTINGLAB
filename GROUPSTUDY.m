@@ -125,14 +125,18 @@ end
 % Only keeping subjects selected for analysis
 Conditions_Order=readtable([DirectoryCond FileCond]);
 TempSubjectslist = table2cell(Conditions_Order(:,1));
-SubjectsRemoved = [];
+if isinteger(TempSubjectslist{1})
+TempSubjectslist=cell2mat(TempSubjectslist); 
+else; TempSubjectslist=cellfun(@(x) str2double(x),TempSubjectslist); 
+end
+SubjectsRemoved = []; Subjectslist = [];
 j=1;
 t=1;
 
 for k=1:length(TempSubjectslist)
     for l=1:size(ProcessDataSTUDY,2) % Number of sessions  
         if ProcessDataSTUDY{k,l}
-            Subjectslist(j) = TempSubjectslist{k};
+            Subjectslist(j) = TempSubjectslist(k);
             j=j+1;
             break
         end
@@ -142,7 +146,7 @@ for k=1:length(TempSubjectslist)
         
         % This will detect files for which there is no data to analyze
         if sum(cell2mat(ProcessDataSTUDY(k,:)))<1
-            SubjectsRemoved(t) = TempSubjectslist{k};
+            SubjectsRemoved(t) = TempSubjectslist(k);
             t=t+1;
             break
         end
@@ -622,6 +626,22 @@ if strcmpi(FreqBandsAnalyses,'yes')
         % Permutation test
         PermResults.TFCE = ept_TFCE(TestData{1},TestData{2},TemplateEEG.chanlocs,'nPerm',...
             NPermut,'rSample', TemplateEEG.srate,'flag_tfce',TFCE,'flag_ft',1,'type',StatsIdx);
+        
+        % Using EEGLAB functions + FDR correction for multiple comparisons
+        [stats, df, pvals] = statcond(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
+             'method','perm','naccu',NPermut,'verbose','off','alpha',AlphaThresh);
+        [p_masked, ~, ~, pvals_FDR]=fdr_bh(pvals,AlphaThresh);
+        
+        % Using Fieldtrip statistics + max cluster correction
+        if strcmpi(StatsIdx,'d')
+            [pcond, ~, ~, statscond] = ...
+            std_stat(SpectDataChan', 'groupstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        else
+            [~, pgroup, ~, ~, statsgroup] = ...
+            std_stat(SpectDataChan', 'groupstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        end
 
         % Permutation threshold (e.g. 95% confidence interval)                     
     %     U = round((1-AlphaThresh)*NPermut); 
