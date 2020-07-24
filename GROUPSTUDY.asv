@@ -620,7 +620,6 @@ if strcmpi(FreqBandsAnalyses,'yes')
         [p_masked, ~, ~, pvals_FDR]=fdr_bh(pvals,AlphaThresh);
         
         % Using Fieldtrip statistics + max cluster correction (ERRORS)
-        % See: https://github.com/sccn/eeglab/issues/184
         
 %         if strcmpi(StatsIdx,'d')
 %             [pcond, ~, ~, statscond] = ...
@@ -634,6 +633,10 @@ if strcmpi(FreqBandsAnalyses,'yes')
 %         [stats, df, pvals] = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
 %         'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'fieldtripmcorrect','max',...
 %         'avgoverchan','yes','avgovertime','yes');
+    
+    % TEST
+    data = { rand(800,10) rand(800,10) rand(800,10);rand(800,10) rand(800,10) rand(800,10)};  % 3 groups, cond 2
+    [pcond, pgroup, pinter, statscond, statsgroup, statsinter] = std_stat(data,'fieldtripmethod','montecarlo','mode','fieldtrip');
 
         % Permutation threshold (e.g. 95% confidence interval)                     
     %     U = round((1-AlphaThresh)*NPermut); 
