@@ -12,16 +12,18 @@ Separated the channels rejection from interpolation and re-referencing, followin
 
 • v0.62.1
 DipFit.bmp figures are now saved as .fig and not .bmp (useless)
-Now using Fieldtrip MonteCarlo Permutations with Max Cluster correction for statistics on frequency bins (3rd figures)
+
 
 
 • TO DO
-Use triggers to restrain data length (!)
+Try using Fieldtrip MonteCarlo Permutations with Max Cluster correction for statistics on frequency bins (3rd figures)
+- Problem with std.stat = https://github.com/sccn/eeglab/issues/184
 Check the source neighbouring matrix
 Include in GUI possibility to adjust the IC rejection criteria for MPT
 Finish the MPT source localisation script
 Implement a try-catch for excel template generation! The software crashes if the name of sheets is changed and files already exist
-Error when opening 2.EEG parameters (when parameters are already loaded)
+
+
 • Problems to solve in the future:
 
 Find a way to implement ASR-interpolation for BLINKER
