@@ -70,7 +70,7 @@ if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
 end
 
 % Adding path to dependencies
-addpath([pwd '\Functions\eeglab14_1_2b']);
+addpath([pwd '\Functions\eeglab2020_0']);
 addpath([pwd '\Functions\']);
 addpath(genpath([pwd '\Functions\Dependencies']));
 addpath([pwd '\Functions\EEGInterp']); 
@@ -216,7 +216,7 @@ for i=1:numel(FieldsBS)
             [STUDY ALLEEG] = std_editset( STUDY, ALLEEG,'name', StudyName, 'commands',...
             {{'index' Increment 'load' [CurrentFolder.ExportPath '\' sprintf(DatasetToLoad, SubjName, WhichCond) '.set'] ...
             'subject' num2str(ParticipantNumber{:}) 'session' WhichCond 'condition' Conditions_Names{WhichCond} 'group' FieldsBS{i}}},...  
-            'updatedat','off','rmclust','on' );
+            'updatedat','off','rmclust','on' );           
              Increment=Increment+1;
         end
     end
@@ -268,20 +268,20 @@ end
 if isempty(BetweenFactors) && length(WithinFactors) == 1
     % Design definition
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','','variable2','condition',...
-        'name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'name',StudyName,'pairing1','off','pairing2','on','delfiles','off',... % delfiles = limites crashes !!! 
         'defaultdesign','off','values1',Conditions_Names,'subjselect',SubjectsDesign);
 
 % Independent-samples t-tests & One-Way ANOVA
 elseif isempty(WithinFactors) && length(BetweenFactors) == 1
     % Design definition 
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','group','variable2','',...
-        'name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'name',StudyName,'pairing1','off','pairing2','on','delfiles','off',...
         'defaultdesign','off','values1',Groups_Names,'subjselect',SubjectsDesign);
 
 % Mixed ANOVA
 elseif length(BetweenFactors) == 1 && length(WithinFactors) == 1
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','group','variable2',...
-        'condition','name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'condition','name',StudyName,'pairing1','off','pairing2','on','delfiles','off',...
         'defaultdesign','off','values1',Groups_Names,'values2',Conditions_Names,...
         'subjselect',SubjectsDesign);
 
@@ -319,11 +319,10 @@ WaitBarApp.Value = 2/3;
 WaitBarApp.Message = 'Precompute power spectra';
 
 % Precompute Channel Power Spectra
-STUDY.SpecMode = 'psd'; % THIS SHOULD BE IN GUI ! 
+STUDY.SpecMode = 'psd'; % THIS SHOULD BE IN GUI !
 % Don't know what to do since for individual subjects we force use of PSD!!
-
 [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-    'specparams',{'specmode',STUDY.SpecMode,'logtrials','on'});
+    'specparams',{'specmode',STUDY.SpecMode,'logtrials','off'});
 
 % Save STUDY
 [STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
@@ -337,14 +336,15 @@ WaitBarApp.Message = 'Plot subjects power spectra';
 
 % Reading spectral data (precomputed)
 try % Sometimes files get corrupted for unknown reasons
-    [STUDY,SpectData,SpectFreqs] = std_readspec(STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'freqrange',ImportFreqRange); 
+    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
+    
 catch
     % Precompute Channel Power Spectra
     [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-        'specparams',{'specmode' 'psd','logtrials','off'});
-    [STUDY,SpectData,SpectFreqs] = std_readspec(STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'freqrange',ImportFreqRange); 
+        'specparams',{'specmode',STUDY.SpecMode,'logtrials','off'});
+    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
 end
 
 % Saving spectral data and statistics in a .mat file
@@ -621,7 +621,7 @@ if strcmpi(FreqBandsAnalyses,'yes')
         
         % Using Fieldtrip statistics + max cluster correction (ERRORS)
         % See: https://github.com/sccn/eeglab/issues/184
-        
+%         
 %         if strcmpi(StatsIdx,'d')
 %             [pcond, ~, ~, statscond] = ...
 %             std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...

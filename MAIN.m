@@ -1009,6 +1009,61 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     sprintf(Dataset_filtCleaned, SubjName,WhichCond)...
                 ,'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond)]);  
             end
+            
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+%             BAD CHANNELS INTERPOLATION AND AVERAGE REFERENCING
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%             ErrorArtifacts = {};
+%             r = 1;
+%             try
+                % Reintroduce the bad channels data 
+                Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
+                for m=Channels
+                   if ~ismember(m,EEG.BadChans.InterpChans) 
+                       Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
+                   else
+                       % Restricting channel data length since EEG.data
+                       % size might have changed with artifact rejection
+                       Temp(m,:) = EEG.BadChans.data(PosBad,1:size(EEG.data,2));PosBad = PosBad + 1;
+                   end
+                end
+                
+                % Adjust the EEG structure
+                EEG.data = Temp; EEG.chanlocs = EEG.BadChans.chanlocs;
+                EEG.nbchan = EEG.BadChans.nbchan;
+                EEG = eeg_checkset(EEG);
+                
+                % Multiquadratics bad channels interpolation
+                EEG.data = EEGinterp('MQ',0.05,EEG,EEG.BadChans.InterpChans);
+                
+                % Average referencing
+                EEG = average_ref(EEG);
+                
+                % Use this function from the PrepPipeline to perform "Robust
+                % Referencing" and Detection of Bad Channels Rejection/Interpolation
+%                 [EEG, InterpChanStruct] =  performReference(EEG);
+%                 EEG.etc.noiseDetection.reference = InterpChanStruct;
+%                 EEG.etc.noiseDetection.fullReferenceInfo = true;
+%                 EEG.etc.noiseDetection.interpolatedChannelNumbers = ...
+%                     InterpChanStruct.interpolatedChannels.all;
+%                 EEG.etc.noiseDetection.stillNoisyChannelNumbers = ...
+%                     InterpChanStruct.noisyStatistics.noisyChannels.all;
+%             catch
+                % Write error to the LOG
+%                 ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
+%                 r = r+1;
+%                 break
+%             end
+            
+            % Visual check before/after interpolation
+            if strcmpi(Automaticity,'Yes')==1
+                vis_artifacts(EEG,OriginalEEG);
+            % Holds the figure until inspection is over
+                Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
+                uiwait(Fig);
+                close gcf
+            end
+            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  INDEPENDENT COMPONENT ANALYSIS (ICA)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1152,6 +1207,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % ICLabel plugin
                 EEG=iclabel(EEG);
                 
+                % Saving ICLabel classification for later use
+                ICLabel = EEG.etc.ic_classification.ICLabel;
+                
                 % Retrieve results (pre-select all non-brain components)
                 Idx=1;
                 for l=1:size(EEG.icaact,1)
@@ -1279,60 +1337,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%             BAD CHANNELS INTERPOLATION AND AVERAGE REFERENCING
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             ErrorArtifacts = {};
-%             r = 1;
-%             try
-                % Reintroduce the bad channels data 
-                Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
-                for m=Channels
-                   if ~ismember(m,EEG.BadChans.InterpChans) 
-                       Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
-                   else
-                       % Restricting channel data length since EEG.data
-                       % size might have changed with artifact rejection
-                       Temp(m,:) = EEG.BadChans.data(PosBad,1:size(EEG.data,2));PosBad = PosBad + 1;
-                   end
-                end
-                
-                % Adjust the EEG structure
-                EEG.data = Temp; EEG.chanlocs = EEG.BadChans.chanlocs;
-                EEG.nbchan = EEG.BadChans.nbchan;
-                EEG = eeg_checkset(EEG);
-                
-                % Multiquadratics bad channels interpolation
-                EEG.data = EEGinterp('MQ',0.05,EEG,EEG.BadChans.InterpChans);
-                
-                % Average referencing
-                EEG = average_ref(EEG);
-                
-                % Use this function from the PrepPipeline to perform "Robust
-                % Referencing" and Detection of Bad Channels Rejection/Interpolation
-%                 [EEG, InterpChanStruct] =  performReference(EEG);
-%                 EEG.etc.noiseDetection.reference = InterpChanStruct;
-%                 EEG.etc.noiseDetection.fullReferenceInfo = true;
-%                 EEG.etc.noiseDetection.interpolatedChannelNumbers = ...
-%                     InterpChanStruct.interpolatedChannels.all;
-%                 EEG.etc.noiseDetection.stillNoisyChannelNumbers = ...
-%                     InterpChanStruct.noisyStatistics.noisyChannels.all;
-%             catch
-                % Write error to the LOG
-%                 ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
-%                 r = r+1;
-%                 break
-%             end
-            
-            % Visual check before/after interpolation
-            if strcmpi(Automaticity,'Yes')==1
-                vis_artifacts(EEG,OriginalEEG);
-            % Holds the figure until inspection is over
-                Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
-                uiwait(Fig);
-                close gcf
-            end
-
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %             EXPORTING PREPROCESSED RESULTS In .BDF file
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             
@@ -1446,8 +1450,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % List of rejected components type
                 ICALabels = cell(1,length(CompsToRej));
                 for t = 1:length(CompsToRej)
-                    [~,TypePos] = max(EEG.etc.ic_classification.ICLabel.classifications(CompsToRej(t),:));
-                    ICALabels(t) = strcat(EEG.etc.ic_classification.ICLabel.classes(TypePos),sprintf('(%s)',num2str(CompsToRej(t))));
+                    [~,TypePos] = max(ICLabel.classifications(CompsToRej(t),:));
+                    ICALabels(t) = strcat(ICLabel.classes(TypePos),sprintf('(%s)',num2str(CompsToRej(t))));
                 end
 
                 % Exporting the list of rejected components in specific excel files
