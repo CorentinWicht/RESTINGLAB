@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.62
+% Version 0.62.1
 % Developped by <Corentin Wicht>
-% 23.10.2019
+% 21.08.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -37,7 +37,7 @@ time_start = datestr(now);
 warning off MATLAB:subscripting:noSubscriptsSpecified
 
 % Adding path to dependencies
-addpath([CurrentPWD '\Functions\eeglab14_1_2b']);
+addpath([CurrentPWD '\Functions\eeglab-develop']);
 addpath([CurrentPWD '\Functions\']);
 addpath(genpath([CurrentPWD '\Functions\Dependencies']));
 % addpath(genpath([CurrentPWD '\Functions\eeglab14_1_2b\plugins\blinkerv1.1.2']));

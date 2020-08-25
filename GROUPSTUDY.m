@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.60
+% Version 0.62.1
 % Developped by <Corentin Wicht>
-% 23.10.2019
+% 21.08.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -70,7 +70,7 @@ if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
 end
 
 % Adding path to dependencies
-addpath([pwd '\Functions\eeglab2020_0']);
+addpath([pwd '\Functions\eeglab-develop']);
 addpath([pwd '\Functions\']);
 addpath(genpath([pwd '\Functions\Dependencies']));
 addpath([pwd '\Functions\EEGInterp']); 
@@ -319,8 +319,7 @@ WaitBarApp.Value = 2/3;
 WaitBarApp.Message = 'Precompute power spectra';
 
 % Precompute Channel Power Spectra
-STUDY.SpecMode = 'psd'; % THIS SHOULD BE IN GUI !
-% Don't know what to do since for individual subjects we force use of PSD!!
+STUDY.SpecMode = 'psd'; 
 [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
     'specparams',{'specmode',STUDY.SpecMode,'logtrials','off'});
 
@@ -603,48 +602,27 @@ if strcmpi(FreqBandsAnalyses,'yes')
 
     %% T-tests
     if strcmpi(Test,'t-test')
-
-         % Virtually duplicating the channel dimensions    
-        TestData{1} = reshape(repmat(permute(SpectDataChan{1},[2 1]),...
-            [size(SpectDataChan{1},1),1]),[size(SpectDataChan{1},2),size(SpectDataChan{1},1),size(SpectDataChan{1},1)]);
-        TestData{2} = reshape(repmat(permute(SpectDataChan{2},[2 1]),...
-            [size(SpectDataChan{2},1),1]),[size(SpectDataChan{2},2),size(SpectDataChan{2},1),size(SpectDataChan{2},1)]);
-
-        % Permutation test
-        PermResults.TFCE = ept_TFCE(TestData{1},TestData{2},TemplateEEG.chanlocs,'nPerm',...
-            NPermut,'rSample', TemplateEEG.srate,'flag_tfce',TFCE,'flag_ft',1,'type',StatsIdx);
-        
-        % Using EEGLAB functions + FDR correction for multiple comparisons
-        [stats, df, pvals] = statcond(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
-             'method','perm','naccu',NPermut,'verbose','off','alpha',AlphaThresh);
-        [p_masked, ~, ~, pvals_FDR]=fdr_bh(pvals,AlphaThresh);
-        
-        % Using Fieldtrip statistics + max cluster correction (ERRORS)
-        % See: https://github.com/sccn/eeglab/issues/184
-%         
-%         if strcmpi(StatsIdx,'d')
-%             [pcond, ~, ~, statscond] = ...
-%             std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
-%             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
-%         else
-%             [~, pgroup, ~, ~, statsgroup] = ...
-%             std_stat(SpectDataChan', 'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
-%             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
-%         end
-%         [stats, df, pvals] = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
-%         'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'fieldtripmcorrect','max',...
-%         'avgoverchan','yes','avgovertime','yes');
-
-        % Permutation threshold (e.g. 95% confidence interval)                     
-    %     U = round((1-AlphaThresh)*NPermut); 
-    %     MaxTFCE=sort(PermResults.TFCE.maxTFCE);
+% 
+        % Using Fieldtrip statistics + max cluster correction    
+        if strcmpi(StatsIdx,'d')
+            [pcond, ~, ~, statscond] = ...
+            std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        else
+            [~, pgroup, ~, ~, statsgroup] = ...
+            std_stat(SpectDataChan', 'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        end
+        ChanStats = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
+        'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'fieldtripmcorrect','max',...
+        'avgoverchan','yes','avgovertime','yes','structoutput','on');
 
         % Finding clusters
-        PermResults.AlphaThresh = AlphaThresh;
-        PermResults.Cluster_Results = ept_calculateClusters(PermResults.TFCE, ChN, AlphaThresh);
+%         PermResults.AlphaThresh = AlphaThresh;
+%         PermResults.Cluster_Results = ept_calculateClusters(PermResults.TFCE, ChN, AlphaThresh);
 
         %% Plotting the results
-        STUDY_Figures(STUDY,PermResults,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
+        STUDY_Figures(STUDY,ChanStats,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
             'AvgFreqs','exportpath',[SavePath '\STUDY\' Date_Start '\'],'freqdata',...
             FreqData(k,:),'alphathresh',AlphaThresh);   
 
@@ -663,6 +641,14 @@ if strcmpi(FreqBandsAnalyses,'yes')
         [Results,Cluster_Results]=Perm_ANOVA(AllDataChan,Design,TemplateEEG,...
             'N_Permutes',NPermut,'Pval',AlphaThresh,'root_folder',pwd,'TFCE',...
             TFCE);
+        
+        % THIS REQUIRES TESTING !!!!!!
+        % Using Fieldtrip statistics + max cluster correction       
+        [PermResults.pcond, PermResults.pgroup, PermResults.pinter,...
+            PermResults.statscond, PermResults.statsgroup, PermResults.statsinter] = ...
+            std_stat([SpectDataChan';SpectDataChan'],'condstats','on',...
+            'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
 
         % Retrieving significant results
         PermResults.TFCE = Results;
