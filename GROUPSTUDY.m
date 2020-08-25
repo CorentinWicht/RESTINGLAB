@@ -319,9 +319,8 @@ WaitBarApp.Value = 2/3;
 WaitBarApp.Message = 'Precompute power spectra';
 
 % Precompute Channel Power Spectra
-STUDY.SpecMode = 'psd'; 
 [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-    'specparams',{'specmode',STUDY.SpecMode,'logtrials','off'});
+    'specparams',{'specmode','psd','logtrials','off'});
 
 % Save STUDY
 [STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
@@ -340,8 +339,8 @@ try % Sometimes files get corrupted for unknown reasons
     
 catch
     % Precompute Channel Power Spectra
-    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-        'specparams',{'specmode',STUDY.SpecMode,'logtrials','off'});
+    [STUDY,ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
+        'specparams',{'specmode','psd','logtrials','off'});
     [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
         ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
 end
@@ -602,24 +601,20 @@ if strcmpi(FreqBandsAnalyses,'yes')
 
     %% T-tests
     if strcmpi(Test,'t-test')
-% 
+
         % Using Fieldtrip statistics + max cluster correction    
         if strcmpi(StatsIdx,'d')
-            [pcond, ~, ~, statscond] = ...
+            [ChanStats.mask, ~, ~, ChanStats.stats] = ...
             std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
         else
-            [~, pgroup, ~, ~, statsgroup] = ...
+            [~, ChanStats.mask, ~, ~, ChanStats.stats] = ...
             std_stat(SpectDataChan', 'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
         end
-        ChanStats = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
-        'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'fieldtripmcorrect','max',...
-        'avgoverchan','yes','avgovertime','yes','structoutput','on');
-
-        % Finding clusters
-%         PermResults.AlphaThresh = AlphaThresh;
-%         PermResults.Cluster_Results = ept_calculateClusters(PermResults.TFCE, ChN, AlphaThresh);
+%         ChanStats = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
+%         'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'mcorrect','max',...
+%         'avgoverchan','yes','avgovertime','yes','structoutput','on');
 
         %% Plotting the results
         STUDY_Figures(STUDY,ChanStats,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
@@ -629,43 +624,28 @@ if strcmpi(FreqBandsAnalyses,'yes')
     %% ANOVAs
     elseif strcmpi(Test,'anova')
 
-        % Datasets
-        AllDataChan = structfun(@(x) permute(x,[2,1]),AllData,'UniformOutput',0);
-        AllDataChan = structfun(@(x) repmat(x,[size(x,1),1]),AllDataChan,'UniformOutput',0);
-        AllDataChan = structfun(@(x) reshape(x,[size(Temp,2) size(Temp,2) size(Temp,1)]),AllDataChan,'UniformOutput',0);
-        % Averaging over the channels
-        AllDataChan = structfun(@(x) squeeze(mean(x,3)),AllDataChan,'UniformOutput',0);
-        AllDataChan = structfun(@(x) x',AllDataChan,'UniformOutput',0); % UNSURE OF THIS !!! 
-
-        % Permutation test
-        [Results,Cluster_Results]=Perm_ANOVA(AllDataChan,Design,TemplateEEG,...
-            'N_Permutes',NPermut,'Pval',AlphaThresh,'root_folder',pwd,'TFCE',...
-            TFCE);
+%         % Datasets
+%         AllDataChan = structfun(@(x) permute(x,[2,1]),AllData,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) repmat(x,[size(x,1),1]),AllDataChan,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) reshape(x,[size(Temp,2) size(Temp,2) size(Temp,1)]),AllDataChan,'UniformOutput',0);
+%         % Averaging over the channels
+%         AllDataChan = structfun(@(x) squeeze(mean(x,3)),AllDataChan,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) x',AllDataChan,'UniformOutput',0); % UNSURE OF THIS !!! 
+% 
+%         % Permutation test
+%         [Results,Cluster_Results]=Perm_ANOVA(AllDataChan,Design,TemplateEEG,...
+%             'N_Permutes',NPermut,'Pval',AlphaThresh,'root_folder',pwd,'TFCE',...
+%             TFCE);
         
-        % THIS REQUIRES TESTING !!!!!!
         % Using Fieldtrip statistics + max cluster correction       
         [PermResults.pcond, PermResults.pgroup, PermResults.pinter,...
             PermResults.statscond, PermResults.statsgroup, PermResults.statsinter] = ...
-            std_stat([SpectDataChan';SpectDataChan'],'condstats','on',...
-            'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
-            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
-
-        % Retrieving significant results
-        PermResults.TFCE = Results;
-        PermResults.Cluster_Results = Cluster_Results;
-
-        % COMPARING WITH MATLAB AOV FUNCTION
-    %     for m=1:size(SpectDataChan{1},1)
-    %         AllPlotData = [];
-    %         GrpLab = {};
-    %         for p=1:length(STUDY.group)
-    %             Dat = SpectDataChan{p};
-    %             GrpLab = [GrpLab; repmat(STUDY.group(p),[size(Dat,2),1])];
-    %             AllPlotData = [AllPlotData;Dat(m,:)'];
-    %         end
-    %         Pvalues(m) = anova1(AllPlotData,GrpLab);
-    %         close all
-    %     end
+            std_stat(SpectDataChan,'condstats','on','groupstats','on','paired',{'off' 'on'},...
+            'fieldtripnaccu',NPermut,'fieldtripmethod','montecarlo',...
+            'fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        
+        % THERE IS A FUNDAMENTAL PROBLEM HERE SINCE THE INTERACTION IS NOT
+        % COMPUTED : https://github.com/sccn/eeglab/issues/202
 
         %% Plotting the results
         STUDY_Figures(STUDY,PermResults,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
@@ -676,8 +656,6 @@ end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                            MICROSTATES ANALYSES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% I STOPPED HERE FOR THE 2x2 mixed ANOVAs tests !!!! 
 
 % Calling the function
 if strcmpi(MicroStatesSwitch,'Yes')
@@ -693,9 +671,9 @@ end
 
 % Calling the function
 if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
-    % Precompute components measures
-    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'components','spec','on','scalp','on',...
-    'recompute','on','specparams',{'specmode' 'psd','logtrials','off'});
+%     % Precompute components measures
+%     [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'components','spec','on','scalp','on',...
+%     'recompute','on','specparams',{'specmode' 'psd','logtrials','off'});
 
     % Create preclustering array
     [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
