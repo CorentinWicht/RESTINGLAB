@@ -289,7 +289,7 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 ## Dependencies
 | PLUGINS | Description |
 | ------ | ------ |
-| [EEGLAB v2020.0](https://github.com/sccn/eeglab) | Importing the .set EEG files | 
+| [EEGLAB v2020.0](https://github.com/sccn/eeglab) | Main software that manages most of the preprocessing and analyses toolboxes described in the table below | 
 | [FMUT v0.5.1](https://github.com/ericcfields/FMUT) | Computation of permutation-based statistics |
 | [ept_TFCE](https://github.com/Mensen/ept_TFCE-matlab) | Computation of permutation-based statistics and TFCE correction |
 | [Automatic Human Sleep Stage Scoring Using Deep Neural Networks](https://github.com/alexander-malafeev/feature-based-sleep-scoring) | Algorithm to classify sleep stages |
