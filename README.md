@@ -358,4 +358,3 @@ See the [LICENSE.md](LICENSE.md) file for details
 This project was supported by [Swiss National Science Foundation](http://www.snf.ch/fr/Pages/default.aspx) grants:
 * [#P0LAP1_181689](http://p3.snf.ch/project-181689) to Corentin Wicht
 * [#320030_175469](http://p3.snf.ch/project-175469) to PD Dr. Lucas Spierer
-* **JOELLE + JMA ???**
