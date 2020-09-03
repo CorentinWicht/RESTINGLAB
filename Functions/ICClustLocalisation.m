@@ -44,9 +44,9 @@ Pval = 0.05; % Default for significance
 SpectMaxCorrel = 0.9; % Default for ???? 
 FreqRange = [1 40]; % Default for the frequency bands
 cutoffDensity = 0.05; % Anatomical areas with less than this dipole denisty ratio will not be reported
-ExportPath = [pwd '\TempICClust\']; % THIS IS TEMPORARY!!!!!!!!!!!!!
-mkdir ([ExportPath '\TempICClust\']);
-ExcelDirectory = [pwd 'TempICClust\']; % THIS IS TEMPORARY!!!!!!!!!!!!!
+% ExportPath = [pwd '\TempICClust\']; % THIS IS TEMPORARY!!!!!!!!!!!!!
+% mkdir ([ExportPath '\TempICClust\']);
+% ExcelDirectory = [pwd 'TempICClust\']; % THIS IS TEMPORARY!!!!!!!!!!!!!
 Measure =  'spec';
 
 % Process Secondary Arguments
@@ -115,16 +115,16 @@ end
 
 %% TEMPORARY FOR TESTS
 % Adding path to dependencies
-addpath([pwd '\Functions\eeglab14_1_2b']);
-addpath([pwd '\Functions\']);
-addpath(genpath([pwd '\Functions\Dependencies']));
-addpath([pwd '\Functions\EEGInterp']); 
-eeglab; close gcf;
-STUDYName = 'STUDY.study'; % 'STUDY_Clustered.study'
-STUDYPath = 'E:\Dropbox\DOC1\Frequency_Source_Analysis\Sommeil_Joelle\FINALSoftware\DATASETS\FarfallaOH(1BS0WS)\OUTPUTS\STUDY\3_10_2019-8_45\';
-% Load STUDY
-pop_editoptions( 'option_storedisk', 1);
-[STUDY ALLEEG] = pop_loadstudy('filename', STUDYName,'filepath', STUDYPath);
+% addpath([pwd '\Functions\eeglab14_1_2b']);
+% addpath([pwd '\Functions\']);
+% addpath(genpath([pwd '\Functions\Dependencies']));
+% addpath([pwd '\Functions\EEGInterp']); 
+% eeglab; close gcf;
+% STUDYName = 'STUDY.study'; % 'STUDY_Clustered.study'
+% STUDYPath = 'E:\Dropbox\DOC1\Frequency_Source_Analysis\Sommeil_Joelle\FINALSoftware\DATASETS\FarfallaOH(1BS0WS)\OUTPUTS\STUDY\3_10_2019-8_45\';
+% % Load STUDY
+% pop_editoptions( 'option_storedisk', 1);
+% [STUDY ALLEEG] = pop_loadstudy('filename', STUDYName,'filepath', STUDYPath);
 
 %% STEP 0 : ICA rejection for clustering
 
@@ -306,27 +306,33 @@ if strcmpi(ConfirmReject,'Yes')
 
     %% RECOMPUTING COMPONENTS MEASURES
     % Precompute Power Spectra
-    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG, 'components','allcomps','off','recompute','on',...
-        'scalp','on','spec','on','specparams',{'specmode' STUDY.SpecMode 'logtrials' 'on'}); 
+%     [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG, 'components','allcomps','off','recompute','on',...
+%         'scalp','on','spec','on','specparams',{'specmode' 'psd' 'logtrials' 'off'});
+    [STUDY, ALLEEG] = std_precomp(STUDY, ALLEEG, 'components','savetrials','on','allcomps','on',...
+    'recompute','on','scalp','on','spec','on','specparams',{'specmode','psd','logtrials','off'});
 
     % Create preclustering array
-    [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
-        'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
-        { 'dipoles' 'norm' 1 'weight' 10 });    
+%     [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
+%         'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
+%         { 'dipoles' 'norm' 1 'weight' 10 });
+    [STUDY ALLEEG] = std_preclust(STUDY, ALLEEG, 1,{'spec','npca',10,'weight',1,...
+        'freqrange',FreqRange},{'scalp','npca',10,'weight',1,'abso',1},...
+        {'dipoles','weight',1},{'moments','weight',1});
     
     % Check for inconsistencies
     [STUDY, ALLEEG] = std_checkset(STUDY, ALLEEG);
     
     % Saving the STUDY under a new name
     [STUDY EEG] = pop_savestudy(STUDY, EEG, 'filename',[STUDY.name '_Clustered.study'],...
-    'filepath',STUDY.filepath);
+    'filepath',ExportPath);
     
     % No idea why an empty figure is being generated
     close gcf
 end
 
 % Restricting frequency range
-[STUDY,~,SpectFreqs] = std_readspec(STUDY, ALLEEG,'clusters',1,'freqrange', FreqRange); 
+% [STUDY,~,SpectFreqs] = std_readspec(STUDY, ALLEEG,'clusters',1,'freqrange', FreqRange); 
+[STUDY,~,SpectFreqs] =  std_readdata(STUDY, ALLEEG,'component',[],'clusters',1,'datatype','spec','freqrange',FreqRange);
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                IC CLUSTERING (MEASURE PROJECTION TOOLBOX)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

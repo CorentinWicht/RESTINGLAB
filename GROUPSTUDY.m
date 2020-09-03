@@ -671,9 +671,9 @@ end
 
 % Calling the function
 if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
-%     % Precompute components measures
-%     [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'components','spec','on','scalp','on',...
-%     'recompute','on','specparams',{'specmode' 'psd','logtrials','off'});
+    % Precompute components measures
+    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'components','spec','on','scalp','on',...
+    'recompute','on','specparams',{'specmode' 'psd','logtrials','off'});
 
     % Create preclustering array
     [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
@@ -681,7 +681,7 @@ if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
         { 'dipoles' 'norm' 1 'weight' 10 });
     
     LogICCLust = ICClustLocalisation(STUDY,ALLEEG,'ExportPath',[SavePath '\Exports\' Date_Start '\ICClust\'],...
-        'ExcelDirectory',[ExcelDirectory Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
+        'ExcelDirectory',[ExcelDirectory '\' Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
