@@ -48,6 +48,7 @@ cutoffDensity = 0.05; % Anatomical areas with less than this dipole denisty rati
 % mkdir ([ExportPath '\TempICClust\']);
 % ExcelDirectory = [pwd 'TempICClust\']; % THIS IS TEMPORARY!!!!!!!!!!!!!
 Measure =  'spec';
+addpath([pwd '\Functions\eeglab-develop\plugins\bigdelys-measure-projection-16dfcad30443']);
 
 % Process Secondary Arguments
 if nargin > 2
@@ -331,7 +332,6 @@ if strcmpi(ConfirmReject,'Yes')
 end
 
 % Restricting frequency range
-% [STUDY,~,SpectFreqs] = std_readspec(STUDY, ALLEEG,'clusters',1,'freqrange', FreqRange); 
 [STUDY,~,SpectFreqs] =  std_readdata(STUDY, ALLEEG,'component',[],'clusters',1,'datatype','spec','freqrange',FreqRange);
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                IC CLUSTERING (MEASURE PROJECTION TOOLBOX)
@@ -350,6 +350,7 @@ end
 % read the data from STUDY
 % Corrected a bug in the function below at line 67
 % There was an inversion between groups/condition position
+% ERROR HERE !! 
 STUDY.measureProjection.(Measure).object = pr.dipoleAndMeasureOfStudySpec(STUDY, ALLEEG); 
 
 % define HeadGRID based on GUI options 

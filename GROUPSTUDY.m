@@ -319,7 +319,7 @@ WaitBarApp.Value = 2/3;
 WaitBarApp.Message = 'Precompute power spectra';
 
 % Precompute Channel Power Spectra
-[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
+[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','off',...
     'specparams',{'specmode','psd','logtrials','off'});
 
 % Save STUDY
@@ -602,7 +602,7 @@ if strcmpi(FreqBandsAnalyses,'yes')
     %% T-tests
     if strcmpi(Test,'t-test')
 
-        % Using Fieldtrip statistics + max cluster correction    
+        % Using Fieldtrip statistics + max cluster correction     
         if strcmpi(StatsIdx,'d')
             [ChanStats.mask, ~, ~, ChanStats.stats] = ...
             std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
@@ -646,7 +646,6 @@ if strcmpi(FreqBandsAnalyses,'yes')
         
         % THERE IS A FUNDAMENTAL PROBLEM HERE SINCE THE INTERACTION IS NOT
         % COMPUTED : https://github.com/sccn/eeglab/issues/202
-
         %% Plotting the results
         STUDY_Figures(STUDY,PermResults,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
             'AvgFreqs','exportpath',[SavePath '\STUDY\' Date_Start '\'],'freqdata',...
@@ -680,6 +679,9 @@ if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
         'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
         { 'dipoles' 'norm' 1 'weight' 10 });
     
+    % THERE ARE CONFLICTS BETWEEN THE MPT Toolbox and std_stat function:
+    % https://github.com/sccn/eeglab/issues/184
+    % One solution would be to add the path of MPT only in ICClust? 
     LogICCLust = ICClustLocalisation(STUDY,ALLEEG,'ExportPath',[SavePath '\Exports\' Date_Start '\ICClust\'],...
         'ExcelDirectory',[ExcelDirectory '\' Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
 end

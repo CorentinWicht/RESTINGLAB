@@ -45,11 +45,11 @@ AlphaThresh = 0.05; % default threshold for significance
 % Initialize variables
 ChannelsLabels = {ChanLocs.labels};
 XTicks = 5:5:length(round(SpectFreqs));
-if strcmpi(STUDY.SpecMode,'fft')
+% if strcmpi(STUDY.SpecMode,'fft')
     Units = '10*Log10(\muV^2/Hz)';
-else
-    Units = '10*Log10(\muV^2)'; 
-end
+% else
+%     Units = '10*Log10(\muV^2)'; 
+% end
  
 % Process Secondary Arguments
 if nargin > 7
@@ -83,8 +83,10 @@ if strcmpi(PlotType,'all')
     MaxColor = max(max(cellfun(@(x) max(max(x)),PlotData)));
     NPlots = size(PlotData,1)*size(PlotData,2);
     YTicks = 1:2:length(ChannelsLabels);
-    TypeStats = {['Main-' STUDY.design.variable(2).label],...
-        ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    if length(STUDY.design.variable) > 1
+        TypeStats = {['Main-' STUDY.design.variable(2).label],...
+            ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    end
     
     % PARENT FIGURE
     figure; 
@@ -168,8 +170,10 @@ elseif strcmpi(PlotType,'bands')
     SigClust=[];
     ColorString = repmat({'b','r','y','m','c','g'},[1,20]);
     ColorMap = hsv(10);
-    TypeStats = {['Main-' STUDY.design.variable(2).label],...
-        ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    if length(STUDY.design.variable) > 1
+        TypeStats = {['Main-' STUDY.design.variable(2).label],...
+            ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    end
     
     % PARENT FIGURE
     figure;
@@ -532,7 +536,7 @@ elseif strcmpi(PlotType,'avgfreqs')
     % Legend/Title
     hold off; legend(LegendLabel,'location','best');legend('boxoff');title('Average over all electrodes');
 
-    if isfield(PermResults.TFCE,'pinter') % mixed/rm-ANOVAs
+    if isfield(PermResults,'pinter') % mixed/rm-ANOVAs
 %         FieldsTemp = fieldnames(PermResults.Cluster_Results);
 %         for t = 1:numel(FieldsTemp)
 %             % Since we duplicate the channel dimension, we only keep the dimension
