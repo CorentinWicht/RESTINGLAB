@@ -1,3 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 Functions/eeglab14_1_2b/plugins/bigdelys-measure-projection-16dfcad30443/+pr/private/eyeScalpmapDataset.mat filter=lfs diff=lfs merge=lfs -text
+*eyeScalpmapDataset.mat filter=lfs diff=lfs merge=lfs -text
+E:/GitHub/RESTINGLAB/RESTINGLAB/Functions/eeglab2020_0/plugins/bigdelys-measure-projection-16dfcad30443/+pr/private/eyeScalpmapDataset.mat filter=lfs diff=lfs merge=lfs -text

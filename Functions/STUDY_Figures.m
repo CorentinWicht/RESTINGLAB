@@ -45,11 +45,11 @@ AlphaThresh = 0.05; % default threshold for significance
 % Initialize variables
 ChannelsLabels = {ChanLocs.labels};
 XTicks = 5:5:length(round(SpectFreqs));
-if strcmpi(STUDY.SpecMode,'fft')
+% if strcmpi(STUDY.SpecMode,'fft')
     Units = '10*Log10(\muV^2/Hz)';
-else
-    Units = '10*Log10(\muV^2)'; 
-end
+% else
+%     Units = '10*Log10(\muV^2)'; 
+% end
  
 % Process Secondary Arguments
 if nargin > 7
@@ -83,8 +83,10 @@ if strcmpi(PlotType,'all')
     MaxColor = max(max(cellfun(@(x) max(max(x)),PlotData)));
     NPlots = size(PlotData,1)*size(PlotData,2);
     YTicks = 1:2:length(ChannelsLabels);
-    TypeStats = {['Main-' STUDY.design.variable(2).label],...
-        ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    if length(STUDY.design.variable) > 1
+        TypeStats = {['Main-' STUDY.design.variable(2).label],...
+            ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    end
     
     % PARENT FIGURE
     figure; 
@@ -168,8 +170,10 @@ elseif strcmpi(PlotType,'bands')
     SigClust=[];
     ColorString = repmat({'b','r','y','m','c','g'},[1,20]);
     ColorMap = hsv(10);
-    TypeStats = {['Main-' STUDY.design.variable(2).label],...
-        ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    if length(STUDY.design.variable) > 1
+        TypeStats = {['Main-' STUDY.design.variable(2).label],...
+            ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    end
     
     % PARENT FIGURE
     figure;
@@ -460,8 +464,10 @@ elseif strcmpi(PlotType,'bands')
 elseif strcmpi(PlotType,'avgfreqs')
    
     % Initialize variables
-    TypeStats = {['Main-' STUDY.design.variable(2).label],...
-        ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    if length(STUDY.design.variable) > 1
+        TypeStats = {['Main-' STUDY.design.variable(2).label],...
+            ['Main-' STUDY.design.variable(1).label],'Interaction'};
+    end
     ColorMap = hsv(10);
     
     % PARENT FIGURE
@@ -486,61 +492,83 @@ elseif strcmpi(PlotType,'avgfreqs')
     end
     axis tight; xlabel('Frequencies'); ylabel(Units)
     
-    if isfield(PermResults.TFCE,'Obs') % t-tests + one-way ANOVA
+    if isfield(PermResults,'pinter') % mixed/rm-ANOVAs
+%         FieldsTemp = fieldnames(PermResults.Cluster_Results);
+%         for t = 1:numel(FieldsTemp)
+%             % Finding the significant clusters
+%             SigClust={};
+%             if ~isempty(PermResults.Cluster_Results.(FieldsTemp{t}))
+%                 for m=1:length(PermResults.Cluster_Results.(FieldsTemp{t}))
+%                     TempRange = str2num(strrep(PermResults.(FieldsTemp{t}).Cluster_Results(m).sample_range,' -',''));
+%                     SigClust(m,1) = {TempRange(1):TempRange(end)};
+%                 end
+%             end
+% 
+%             % Adding vertical patches (for each sig. cluster) 
+%             if ~isempty(PermResults.Cluster_Results.(FieldsTemp{t}))
+%                 YLimits = get(gca,'YLim');
+%                 for m=1:length(PermResults.Cluster_Results.(FieldsTemp{t}))
+%                     XCoord = [SigClust{m}(1) SigClust{m}(end) SigClust{m}(end) SigClust{m}(1)];
+%                     YCoord = [YLimits(1)  YLimits(1) YLimits(2) YLimits(2)];
+%                     patch(XCoord,YCoord, [([17 17 17])/255], 'FaceAlpha', 0.2); % [([17 17 17])/255] is gray color
+%                 end
+%             end
+%         end
+    else % t-tests + one-way ANOVA
         % Finding the significant clusters
         SigClust={};
-        if ~isempty(PermResults.Cluster_Results)
-            for m=1:length(PermResults.Cluster_Results)
-                TempRange = str2num(strrep(PermResults.Cluster_Results(m).sample_range,' -',''));
-                SigClust(m,1) = {[TempRange(1):TempRange(end)]};
-            end
+        Idx = bwlabel(PermResults.mask{:});
+        for m = 1:length(unique(Idx))-1 % -1 is for 0s
+            TempRange = find(Idx == m);
+            SigClust(m,1) = {TempRange};
         end
 
         % Adding vertical patches (for each sig. cluster) 
-        if ~isempty(PermResults.Cluster_Results)
+        if ~isempty(SigClust)
             YLimits = get(gca,'YLim');
-            for m=1:length(PermResults.Cluster_Results)
+            for m=1:length(SigClust)
                 XCoord = [SigClust{m}(1) SigClust{m}(end) SigClust{m}(end) SigClust{m}(1)];
                 YCoord = [YLimits(1)  YLimits(1) YLimits(2) YLimits(2)];
                 patch(XCoord,YCoord, [([17 17 17])/255], 'FaceAlpha', 0.2); % [([17 17 17])/255] is gray color
-            end
-        end
-    else % mixed/rm-ANOVAs
-        FieldsTemp = fieldnames(PermResults.Cluster_Results);
-        for t = 1:numel(FieldsTemp)
-            % Finding the significant clusters
-            SigClust={};
-            if ~isempty(PermResults.Cluster_Results.(FieldsTemp{t}))
-                for m=1:length(PermResults.Cluster_Results.(FieldsTemp{t}))
-                    TempRange = str2num(strrep(PermResults.(FieldsTemp{t}).Cluster_Results(m).sample_range,' -',''));
-                    SigClust(m,1) = {TempRange(1):TempRange(end)};
-                end
-            end
-
-            % Adding vertical patches (for each sig. cluster) 
-            if ~isempty(PermResults.Cluster_Results.(FieldsTemp{t}))
-                YLimits = get(gca,'YLim');
-                for m=1:length(PermResults.Cluster_Results.(FieldsTemp{t}))
-                    XCoord = [SigClust{m}(1) SigClust{m}(end) SigClust{m}(end) SigClust{m}(1)];
-                    YCoord = [YLimits(1)  YLimits(1) YLimits(2) YLimits(2)];
-                    patch(XCoord,YCoord, [([17 17 17])/255], 'FaceAlpha', 0.2); % [([17 17 17])/255] is gray color
-                end
             end
         end
     end
     % Legend/Title
     hold off; legend(LegendLabel,'location','best');legend('boxoff');title('Average over all electrodes');
 
-    if isfield(PermResults.TFCE,'Obs') % t-tests + one-way ANOVA
+    if isfield(PermResults,'pinter') % mixed/rm-ANOVAs
+%         FieldsTemp = fieldnames(PermResults.Cluster_Results);
+%         for t = 1:numel(FieldsTemp)
+%             % Since we duplicate the channel dimension, we only keep the dimension
+%             % including p-values which are not all identical
+%             PlotStats = squeeze(PermResults.TFCE.(FieldsTemp{t}).P_Values(1,:)); 
+% 
+%             % Stats results
+%             subplot(133); 
+%             title(sprintf('%d sig. clusters of frequencies',length(PermResults.Cluster_Results.(FieldsTemp{t}))))
+%             Fig(t) = plot(PlotStats,'-.o','Color',ColorMap(end-t+1,:));xlabel('Frequencies'), ylabel('P-values');
+%             hold on
+%             ThreshPlot = NaN(size(PlotStats));
+%             for m=1:length(SigClust)
+%                 ThreshPlot(SigClust{m}) = PlotStats(SigClust{m});
+%                 plot(ThreshPlot,'-.o'); % ,'Color',ColorString{m}
+%                 ThreshPlot = NaN(size(PlotStats));
+%             end
+%         end
+%         hold off; axis tight; title('Permutation-corrected P-Values');
+%         line([0 size(PlotStats,2)], [AlphaThresh AlphaThresh],'Color','k','LineStyle','--');
+%         set(gca,'XTick',XTicks,'XTickLabel',round(SpectFreqs(5:5:end))); 
+%         legend(Fig,TypeStats','location','best');legend('boxoff');
+     else % t-tests + one-way ANOVA
+         
         % Since we duplicate the channel dimension, we only keep the dimension
         % including p-values which are not all identical
-        PlotStats = squeeze(PermResults.TFCE.P_Values(1,:)); 
+        PlotStats = PermResults.stats{:}; 
 
         % Stats results
         subplot(133); 
-        title(sprintf('%d significant TFCE-adjusted clusters of frequencies',length(PermResults.Cluster_Results)))
-        PlotStats = PlotStats; 
-        plot(PlotStats,'-.o','Color','k');xlabel('Frequencies'), ylabel('P-values');
+        title(sprintf('%d significant clusters of frequencies',length(SigClust)))
+        plot(PlotStats,'-.o','Color','k');xlabel('Frequencies'), ylabel('T-values');
         hold on
         ThreshPlot = NaN(size(PlotStats));
         for m=1:length(SigClust)
@@ -551,29 +579,6 @@ elseif strcmpi(PlotType,'avgfreqs')
         hold off; axis tight; title('Permutation-corrected P-Values');
         line([0 size(PlotStats,2)], [AlphaThresh AlphaThresh],'Color','k','LineStyle','--');
         set(gca,'XTick',XTicks,'XTickLabel',round(SpectFreqs(5:5:end))); 
-     else % mixed/rm-ANOVAs
-        FieldsTemp = fieldnames(PermResults.Cluster_Results);
-        for t = 1:numel(FieldsTemp)
-            % Since we duplicate the channel dimension, we only keep the dimension
-            % including p-values which are not all identical
-            PlotStats = squeeze(PermResults.TFCE.(FieldsTemp{t}).P_Values(1,:)); 
-
-            % Stats results
-            subplot(133); 
-            title(sprintf('%d sig. clusters of frequencies',length(PermResults.Cluster_Results.(FieldsTemp{t}))))
-            Fig(t) = plot(PlotStats,'-.o','Color',ColorMap(end-t+1,:));xlabel('Frequencies'), ylabel('P-values');
-            hold on
-            ThreshPlot = NaN(size(PlotStats));
-            for m=1:length(SigClust)
-                ThreshPlot(SigClust{m}) = PlotStats(SigClust{m});
-                plot(ThreshPlot,'-.o'); % ,'Color',ColorString{m}
-                ThreshPlot = NaN(size(PlotStats));
-            end
-        end
-        hold off; axis tight; title('Permutation-corrected P-Values');
-        line([0 size(PlotStats,2)], [AlphaThresh AlphaThresh],'Color','k','LineStyle','--');
-        set(gca,'XTick',XTicks,'XTickLabel',round(SpectFreqs(5:5:end))); 
-        legend(Fig,TypeStats','location','best');legend('boxoff');
     end
 
     % Saves the averaged topoplots in All folder

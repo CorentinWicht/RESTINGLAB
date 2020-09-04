@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.60
+% Version 0.62.1
 % Developped by <Corentin Wicht>
-% 23.10.2019
+% 21.08.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -70,7 +70,7 @@ if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
 end
 
 % Adding path to dependencies
-addpath([pwd '\Functions\eeglab14_1_2b']);
+addpath([pwd '\Functions\eeglab-develop']);
 addpath([pwd '\Functions\']);
 addpath(genpath([pwd '\Functions\Dependencies']));
 addpath([pwd '\Functions\EEGInterp']); 
@@ -216,7 +216,7 @@ for i=1:numel(FieldsBS)
             [STUDY ALLEEG] = std_editset( STUDY, ALLEEG,'name', StudyName, 'commands',...
             {{'index' Increment 'load' [CurrentFolder.ExportPath '\' sprintf(DatasetToLoad, SubjName, WhichCond) '.set'] ...
             'subject' num2str(ParticipantNumber{:}) 'session' WhichCond 'condition' Conditions_Names{WhichCond} 'group' FieldsBS{i}}},...  
-            'updatedat','off','rmclust','on' );
+            'updatedat','off','rmclust','on' );           
              Increment=Increment+1;
         end
     end
@@ -268,20 +268,20 @@ end
 if isempty(BetweenFactors) && length(WithinFactors) == 1
     % Design definition
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','','variable2','condition',...
-        'name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'name',StudyName,'pairing1','off','pairing2','on','delfiles','off',... % delfiles = limites crashes !!! 
         'defaultdesign','off','values1',Conditions_Names,'subjselect',SubjectsDesign);
 
 % Independent-samples t-tests & One-Way ANOVA
 elseif isempty(WithinFactors) && length(BetweenFactors) == 1
     % Design definition 
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','group','variable2','',...
-        'name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'name',StudyName,'pairing1','off','pairing2','on','delfiles','off',...
         'defaultdesign','off','values1',Groups_Names,'subjselect',SubjectsDesign);
 
 % Mixed ANOVA
 elseif length(BetweenFactors) == 1 && length(WithinFactors) == 1
     STUDY = std_makedesign(STUDY, ALLEEG, 1, 'variable1','group','variable2',...
-        'condition','name',StudyName,'pairing1','off','pairing2','on','delfiles','limited',...
+        'condition','name',StudyName,'pairing1','off','pairing2','on','delfiles','off',...
         'defaultdesign','off','values1',Groups_Names,'values2',Conditions_Names,...
         'subjselect',SubjectsDesign);
 
@@ -319,11 +319,8 @@ WaitBarApp.Value = 2/3;
 WaitBarApp.Message = 'Precompute power spectra';
 
 % Precompute Channel Power Spectra
-STUDY.SpecMode = 'psd'; % THIS SHOULD BE IN GUI ! 
-% Don't know what to do since for individual subjects we force use of PSD!!
-
-[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-    'specparams',{'specmode',STUDY.SpecMode,'logtrials','on'});
+[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','off',...
+    'specparams',{'specmode','psd','logtrials','off'});
 
 % Save STUDY
 [STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
@@ -337,14 +334,15 @@ WaitBarApp.Message = 'Plot subjects power spectra';
 
 % Reading spectral data (precomputed)
 try % Sometimes files get corrupted for unknown reasons
-    [STUDY,SpectData,SpectFreqs] = std_readspec(STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'freqrange',ImportFreqRange); 
+    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
+    
 catch
     % Precompute Channel Power Spectra
-    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-        'specparams',{'specmode' 'psd','logtrials','off'});
-    [STUDY,SpectData,SpectFreqs] = std_readspec(STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'freqrange',ImportFreqRange); 
+    [STUDY,ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
+        'specparams',{'specmode','psd','logtrials','off'});
+    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
 end
 
 % Saving spectral data and statistics in a .mat file
@@ -604,83 +602,50 @@ if strcmpi(FreqBandsAnalyses,'yes')
     %% T-tests
     if strcmpi(Test,'t-test')
 
-         % Virtually duplicating the channel dimensions    
-        TestData{1} = reshape(repmat(permute(SpectDataChan{1},[2 1]),...
-            [size(SpectDataChan{1},1),1]),[size(SpectDataChan{1},2),size(SpectDataChan{1},1),size(SpectDataChan{1},1)]);
-        TestData{2} = reshape(repmat(permute(SpectDataChan{2},[2 1]),...
-            [size(SpectDataChan{2},1),1]),[size(SpectDataChan{2},2),size(SpectDataChan{2},1),size(SpectDataChan{2},1)]);
-
-        % Permutation test
-        PermResults.TFCE = ept_TFCE(TestData{1},TestData{2},TemplateEEG.chanlocs,'nPerm',...
-            NPermut,'rSample', TemplateEEG.srate,'flag_tfce',TFCE,'flag_ft',1,'type',StatsIdx);
-        
-        % Using EEGLAB functions + FDR correction for multiple comparisons
-        [stats, df, pvals] = statcond(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
-             'method','perm','naccu',NPermut,'verbose','off','alpha',AlphaThresh);
-        [p_masked, ~, ~, pvals_FDR]=fdr_bh(pvals,AlphaThresh);
-        
-        % Using Fieldtrip statistics + max cluster correction (ERRORS)
-        % See: https://github.com/sccn/eeglab/issues/184
-        
-%         if strcmpi(StatsIdx,'d')
-%             [pcond, ~, ~, statscond] = ...
-%             std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
-%             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
-%         else
-%             [~, pgroup, ~, ~, statsgroup] = ...
-%             std_stat(SpectDataChan', 'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
-%             'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
-%         end
-%         [stats, df, pvals] = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
-%         'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'fieldtripmcorrect','max',...
-%         'avgoverchan','yes','avgovertime','yes');
-
-        % Permutation threshold (e.g. 95% confidence interval)                     
-    %     U = round((1-AlphaThresh)*NPermut); 
-    %     MaxTFCE=sort(PermResults.TFCE.maxTFCE);
-
-        % Finding clusters
-        PermResults.AlphaThresh = AlphaThresh;
-        PermResults.Cluster_Results = ept_calculateClusters(PermResults.TFCE, ChN, AlphaThresh);
+        % Using Fieldtrip statistics + max cluster correction     
+        if strcmpi(StatsIdx,'d')
+            [ChanStats.mask, ~, ~, ChanStats.stats] = ...
+            std_stat(SpectDataChan, 'condstats','on', 'fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        else
+            [~, ChanStats.mask, ~, ~, ChanStats.stats] = ...
+            std_stat(SpectDataChan', 'groupstats','on','fieldtripnaccu',NPermut,'fieldtripmethod',...
+            'montecarlo','fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        end
+%         ChanStats = statcondfieldtrip(SpectDataChan','paired',fastif(strcmpi(StatsIdx,'d'),'on','off'),...
+%         'method','permutation','naccu',NPermut,'alpha',AlphaThresh,'mcorrect','max',...
+%         'avgoverchan','yes','avgovertime','yes','structoutput','on');
 
         %% Plotting the results
-        STUDY_Figures(STUDY,PermResults,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
+        STUDY_Figures(STUDY,ChanStats,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
             'AvgFreqs','exportpath',[SavePath '\STUDY\' Date_Start '\'],'freqdata',...
             FreqData(k,:),'alphathresh',AlphaThresh);   
 
     %% ANOVAs
     elseif strcmpi(Test,'anova')
 
-        % Datasets
-        AllDataChan = structfun(@(x) permute(x,[2,1]),AllData,'UniformOutput',0);
-        AllDataChan = structfun(@(x) repmat(x,[size(x,1),1]),AllDataChan,'UniformOutput',0);
-        AllDataChan = structfun(@(x) reshape(x,[size(Temp,2) size(Temp,2) size(Temp,1)]),AllDataChan,'UniformOutput',0);
-        % Averaging over the channels
-        AllDataChan = structfun(@(x) squeeze(mean(x,3)),AllDataChan,'UniformOutput',0);
-        AllDataChan = structfun(@(x) x',AllDataChan,'UniformOutput',0); % UNSURE OF THIS !!! 
-
-        % Permutation test
-        [Results,Cluster_Results]=Perm_ANOVA(AllDataChan,Design,TemplateEEG,...
-            'N_Permutes',NPermut,'Pval',AlphaThresh,'root_folder',pwd,'TFCE',...
-            TFCE);
-
-        % Retrieving significant results
-        PermResults.TFCE = Results;
-        PermResults.Cluster_Results = Cluster_Results;
-
-        % COMPARING WITH MATLAB AOV FUNCTION
-    %     for m=1:size(SpectDataChan{1},1)
-    %         AllPlotData = [];
-    %         GrpLab = {};
-    %         for p=1:length(STUDY.group)
-    %             Dat = SpectDataChan{p};
-    %             GrpLab = [GrpLab; repmat(STUDY.group(p),[size(Dat,2),1])];
-    %             AllPlotData = [AllPlotData;Dat(m,:)'];
-    %         end
-    %         Pvalues(m) = anova1(AllPlotData,GrpLab);
-    %         close all
-    %     end
-
+%         % Datasets
+%         AllDataChan = structfun(@(x) permute(x,[2,1]),AllData,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) repmat(x,[size(x,1),1]),AllDataChan,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) reshape(x,[size(Temp,2) size(Temp,2) size(Temp,1)]),AllDataChan,'UniformOutput',0);
+%         % Averaging over the channels
+%         AllDataChan = structfun(@(x) squeeze(mean(x,3)),AllDataChan,'UniformOutput',0);
+%         AllDataChan = structfun(@(x) x',AllDataChan,'UniformOutput',0); % UNSURE OF THIS !!! 
+% 
+%         % Permutation test
+%         [Results,Cluster_Results]=Perm_ANOVA(AllDataChan,Design,TemplateEEG,...
+%             'N_Permutes',NPermut,'Pval',AlphaThresh,'root_folder',pwd,'TFCE',...
+%             TFCE);
+        
+        % Using Fieldtrip statistics + max cluster correction       
+        [PermResults.pcond, PermResults.pgroup, PermResults.pinter,...
+            PermResults.statscond, PermResults.statsgroup, PermResults.statsinter] = ...
+            std_stat(SpectDataChan,'condstats','on','groupstats','on','paired',{'off' 'on'},...
+            'fieldtripnaccu',NPermut,'fieldtripmethod','montecarlo',...
+            'fieldtripmcorrect','max','fieldtripalpha',AlphaThresh,'mode','fieldtrip');
+        
+        % THERE IS A FUNDAMENTAL PROBLEM HERE SINCE THE INTERACTION IS NOT
+        % COMPUTED : https://github.com/sccn/eeglab/issues/202
         %% Plotting the results
         STUDY_Figures(STUDY,PermResults,SpectDataChan,SpectFreqs,TemplateEEG.chanlocs,...
             'AvgFreqs','exportpath',[SavePath '\STUDY\' Date_Start '\'],'freqdata',...
@@ -690,8 +655,6 @@ end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                            MICROSTATES ANALYSES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% I STOPPED HERE FOR THE 2x2 mixed ANOVAs tests !!!! 
 
 % Calling the function
 if strcmpi(MicroStatesSwitch,'Yes')
@@ -716,8 +679,11 @@ if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
         'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
         { 'dipoles' 'norm' 1 'weight' 10 });
     
+    % THERE ARE CONFLICTS BETWEEN THE MPT Toolbox and std_stat function:
+    % https://github.com/sccn/eeglab/issues/184
+    % One solution would be to add the path of MPT only in ICClust? 
     LogICCLust = ICClustLocalisation(STUDY,ALLEEG,'ExportPath',[SavePath '\Exports\' Date_Start '\ICClust\'],...
-        'ExcelDirectory',[ExcelDirectory Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
+        'ExcelDirectory',[ExcelDirectory '\' Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
