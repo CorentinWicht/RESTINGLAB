@@ -18,8 +18,8 @@ C.A. Wicht, RESTINLAB, (2020), GitHub repository, https://github.com/CorentinWic
 ## Table of Contents
 
 * [Getting Started](#getting-started)
-  + [Structuring your files/folders](#structuring-your-files-folders)
-  + [Guided User Interfaces (GUI)](#guided-user-interfaces--gui-)
+  + [Structuring your files and folders](#structuring-your-files-and-folders)
+  + [Guided User Interfaces](#guided-user-interfaces)
   + [1.Design](#1design)
     - [1.1.Participants Assignment](#11participants-assignment)
     - [1.2.Subjects](#12subjects)
@@ -40,7 +40,7 @@ C.A. Wicht, RESTINLAB, (2020), GitHub repository, https://github.com/CorentinWic
 
 ## Getting Started
 
-### Structuring your files/folders
+### Structuring your files and folders
 
 
 The structure of your files and folder has to be done as following:
@@ -69,7 +69,7 @@ The structure of your files and folder has to be done as following:
 
 
 
-### Guided User Interfaces (GUI)
+### Guided User Interfaces
 
 When on the [RESTINGLAB startup page](https://github.com/CorentinWicht/RESTINGLAB), start by clicking on `⬇️ Code` on the top right of the screen and then `Download ZIP` to download the whole repository (alternatively you can also clone it). 
 
