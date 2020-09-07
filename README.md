@@ -18,6 +18,8 @@ C.A. Wicht, RESTINLAB, (2020), GitHub repository, https://github.com/CorentinWic
 ## Table of Contents
 
 * [Getting Started](#getting-started)
+  + [Structuring your files/folders](#structuring-your-files-folders)
+  + [Guided User Interfaces (GUI)](#guided-user-interfaces--gui-)
   + [1.Design](#1design)
     - [1.1.Participants Assignment](#11participants-assignment)
     - [1.2.Subjects](#12subjects)
@@ -36,8 +38,38 @@ C.A. Wicht, RESTINLAB, (2020), GitHub repository, https://github.com/CorentinWic
 
 
 
-
 ## Getting Started
+
+### Structuring your files/folders
+
+
+The structure of your files and folder has to be done as following:
+
+```
+📁 [Group1]
+ ↳ 📁 [Participant1] 
+    ↳ 🧠 Condition1.bdf
+    ↳ 🧠 Condition2.bdf
+ ↳ 📁 [Participant2]
+    ↳ 🧠 Condition1.bdf
+    ↳ 🧠 Condition2.bdf
+    
+📁 [Group2]
+ ↳ 📁 [Participant6] 
+ ...
+ 
+ 📁 [OUTPUTS]
+...
+```
+
+1) The first level of folders, e.g. ```Group1```, should be the **Between-subject factor levels**. If you don't have a between-subject factor, name it for e.g. ```Data```
+2) The second level of folders, e.g. ```Participant1```, should correspond to the **participant number** (i.e. important to have the number at the end of the folder name!). 
+3) File inside each ```Participant``` folders, should represent the **Within-subject factor levels** (e.g. ```Condition1.bdf```). 
+4) Optionally, you can create an ```OUTPUT``` folder in which you can decide to save the outputs of the analyses. 
+
+
+
+### Guided User Interfaces (GUI)
 
 When on the [RESTINGLAB startup page](https://github.com/CorentinWicht/RESTINGLAB), start by clicking on `⬇️ Code` on the top right of the screen and then `Download ZIP` to download the whole repository (alternatively you can also clone it). 
 
