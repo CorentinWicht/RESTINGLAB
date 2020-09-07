@@ -65,7 +65,7 @@ The structure of your files and folder has to be done as following:
 1) The first level of folders, e.g. ```Group1```, should be the **Between-subject factor levels**. If you don't have a between-subject factor, name it for e.g. ```Data```
 2) The second level of folders, e.g. ```Participant1```, should correspond to the **participant number** (i.e. important to have the number at the end of the folder name!). 
 3) File inside each ```Participant``` folders, should represent the **Within-subject factor levels** (e.g. ```Condition1.bdf```). 
-4) Optionally, you can create an ```OUTPUT``` folder in which you can decide to save the outputs of the analyses. 
+4) Optionally, you can create an ```OUTPUTS``` folder in which you can decide to save the outputs of the analyses. 
 
 
 
