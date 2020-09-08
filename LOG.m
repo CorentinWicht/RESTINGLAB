@@ -42,13 +42,13 @@ for k=1:length(ParametersPath)
 end
 
 % If creating new parameters and only running GroupStudy, the
-% MainWorkspace.mat might be missing. 
-if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
+% MAINWorkspace.mat might be missing. 
+if nnz(contains({ParametersPath.name},'MAINWorkspace.mat')) < 1
     % Get time and date
     CurrentDate = datenum(clock);
     
     % List of possible matrices
-    TempList = dir([SavePath '\Parameters\' '**/*' 'MainWorkspace.mat']);
+    TempList = dir([SavePath '\Parameters\' '**/*' 'MAINWorkspace.mat']);
     
     if length(TempList) > 1
         for m=1:length(TempList)
@@ -76,6 +76,7 @@ username=getenv('USERNAME');
 % Decision if doing basic analyses
 if exist('AnalysesSwitch','var')
     Analysis = 1;
+else; Analysis = 0;
 end
 
 % Group analyses log data
@@ -272,15 +273,17 @@ if exist('ErrorArtifacts','var') && ~isempty(ErrorArtifacts)
 else
     fprintf(fid,'\r\n No errors reported, congrats!');
 end
-fprintf(fid,'\r\n%s\r\n','------ 2) Group Analyses: ------');
-if exist('ErrorSTUDY','var') && ~isempty(ErrorSTUDY)
-     fprintf(fid,'\r\n%s',sprintf(['The following files in the STUDY displayed a different' ...
-         'sampling rate than others, hence we downsampled all of them to %dHz:'],ErrorSTUDY{1}));
-    for k=2:size(ErrorSTUDY,1) 
-        fprintf(fid,'\r\n\r\n%s',sprintf('%d) %s',k-1,ErrorSTUDY{k}));
+if Analysis
+    fprintf(fid,'\r\n%s\r\n','------ 2) Group Analyses: ------');
+    if exist('ErrorSTUDY','var') && ~isempty(ErrorSTUDY)
+         fprintf(fid,'\r\n%s',sprintf(['The following files in the STUDY displayed a different' ...
+             'sampling rate than others, hence we downsampled all of them to %dHz:'],ErrorSTUDY{1}));
+        for k=2:size(ErrorSTUDY,1) 
+            fprintf(fid,'\r\n\r\n%s',sprintf('%d) %s',k-1,ErrorSTUDY{k}));
+        end
+    else
+        fprintf(fid,'\r\n No errors reported, congrats!');
     end
-else
-    fprintf(fid,'\r\n No errors reported, congrats!');
 end
 
 % Output message

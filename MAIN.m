@@ -405,7 +405,7 @@ for k=1:length(FilesPath)
 %                 for f = 1:size(Conditions_Labels,2)
 %                     Condname_i(f) = contains(upper(CurrentFileSplit{1}),upper(Conditions_Labels{f}));
 %                 end
-                  Condname_i = contains(upper(Conditions_Labels{f}),upper(CurrentFileSplit{1}));
+                  Condname_i = contains(upper(Conditions_Labels),upper(CurrentFileSplit{1}));
 
                 
                 % In case of multiple positives, take the lengthier condition name
@@ -414,12 +414,10 @@ for k=1:length(FilesPath)
                 elseif sum(Condname_i) == 1 
                     CondPos = find(Condname_i == 1);
                 else % Case where the header and the data in columns are inverted
-                    Condname_i = contains(upper(table2cell(Conditions_Order(CurrentSubj,2:end))),upper(CurrentFileSplit{1}));
-                    CondPos = find(Condname_i == 1);
-                    Inverted = 1;
+                    Condname_i = contains(upper(Conditions_OrderCell(CurrentSubj,:)),upper(CurrentFileSplit{1}));
+                    CondPos = find(Condname_i == 1); Inverted = 1;
                 end
-            else
-                CondPos = 1;
+            else; CondPos = 1; 
             end
             
             % Only including data that was selected in the GUI
@@ -430,14 +428,20 @@ for k=1:length(FilesPath)
                 
                 % Create the folder list content structure called FileList
                 if Inverted
+                    Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).FileList(CondPos) = CurrentFile;
                 else
                     Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).FileList(Pos) = CurrentFile;
                 end
                 
                 % Retrieving the conditions assignement values
                 if length(Conditions_Names)>1
-                    Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).CondAssign(Pos) = ...
-                        Conditions_OrderCell(TempFilePos,l); 
+                    if Inverted
+                        Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).CondAssign(Pos) = ...
+                            Conditions_Names(l); 
+                    else
+                        Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).CondAssign(Pos) = ...
+                            Conditions_OrderCell(TempFilePos,l); 
+                    end
                 else
                     Participant_load.(Groups_Names{k}).(SplitFileTemp{end}).CondAssign(Pos) = ...
                         Conditions_Names(l); 
@@ -469,7 +473,7 @@ try
         ExcelFiles=dir([ExcelPath  '\**/*' '.xlsx']);
 
         % Creating excel templates if they do not exist
-        if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
+        if length(ExcelFiles)<=1 % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
             CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[SavePath '\Excel\' Date_Start '\'],ExcelFiles);
         end
     else
@@ -593,7 +597,12 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             EEG = pop_biosig(Subj_load, 'channels', Channels); 
 
             % Loading BioSemi channel location
-            EEG=pop_chanedit(EEG, 'load',{Channel_load 'filetype' 'autodetect'});
+            try
+                EEG=pop_chanedit(EEG, 'load',{Channel_load 'filetype' 'loc'});
+            catch
+                warning(['There seems to be no channels location file in this directory:',...
+                    newline Channel_load])
+            end
 
             %% RESTRICTING DATA LENGTH (optional)
             if End~=0
@@ -1443,7 +1452,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             XlsCompCol=xlsColNum2Str(length(InterpChans)+1); 
 
             % Adding names of electrodes
-            InterpChansStr = {EEG.chanlocs(InterpChans).labels};
+            InterpChansStr = {EEG.BadChans.chanlocs(InterpChans).labels};
             InterpChans = cellfun(@(x) ['(' num2str(x) ')'], num2cell(InterpChans),'UniformOutput',false);
             InterpChans = strcat(InterpChansStr,InterpChans);
 
@@ -1498,6 +1507,11 @@ end
 WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
     'Message','','Cancelable','on');
 File = 0;
+
+% If not interested in analyses
+if ~exist('Analysis','var')
+    Analysis = 0;
+end
 
 if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
         % Finally, here we perform the power spectra analysis on specific
@@ -1739,7 +1753,8 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             end
         end
     end
-    
+end
+
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  SAVING VARIABLES FOR FURTHER USE
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1747,7 +1762,6 @@ save([SavePath '\Parameters\' Date_Start '\MAINWorkspace.mat'],...
     'Dataset_filtCleaned_ICAedRejected','Dataset_filtCleaned',...
     'Participant_load','Groups_Names','Conditions_Names','Subjectslist',...
     'FreqRanges','ErrorArtifacts','ExcelDirectory');
-end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  RUNNING THE STUDY (GROUP ANALYSES)
