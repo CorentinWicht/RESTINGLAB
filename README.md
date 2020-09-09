@@ -132,7 +132,7 @@ In the top field you have the possibility to define the subjects' number that yo
 You can also load existing parameters (`LOAD PARAMETERS` button, i.e. look for the `Conditions_order.xlsx` file).
 
 When you are happy with your choice, press `SAVE`.\
-By doing so, the `Conditions_order.xlsx` file will generate in the folder your exports folder.
+By doing so, the `Conditions_order.xlsx` file will be generated in your exports folder.
 
 ![](tools/screenshots/PartAssign.png)
 
