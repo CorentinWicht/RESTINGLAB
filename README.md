@@ -13,7 +13,7 @@ RESTINGLAB is an open-source [EEGLAB](https://github.com/sccn/eeglab)-based stan
 
 ## Cite the repository
 C.A. Wicht, RESTINLAB, (2020), GitHub repository, https://github.com/CorentinWicht/RESTINGLAB \
-*MISSING DOI* -- Need first pre-release ! 
+[![DOI](https://zenodo.org/badge/227150916.svg)](https://zenodo.org/badge/latestdoi/227150916)
 
 ## Table of Contents
 
