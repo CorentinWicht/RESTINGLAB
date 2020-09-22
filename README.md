@@ -28,6 +28,7 @@ C.A. Wicht, RESTINGLAB, (2020), GitHub repository, https://github.com/CorentinWi
     - [3.1.AreasList](#31areaslist)
   + [4.Analyses](#4analyses)
   + [Exports](#exports)
+* [Preprocessing Pipeline](#preprocessing-pipeline)
 * [Dependencies](#dependencies)
 * [Authors](#authors)
 * [License](#license)
@@ -320,6 +321,12 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 | FolderName_Condition_ExportSelection.set | Meta-information (number of channels, sampling frequency etc...) |
 | FolderName_Condition_Preprocessed.bdf | [BioSemi](https://biosemi.com/) EEG file generated after preprocessing and which can be easily open in [CARTOOL](https://sites.google.com/site/cartoolcommunity/) |
 
+
+## Preprocessing Pipeline
+
+![](tools/screenshots/Pipeline.png)
+
+![](tools/screenshots/PipelineLegend.png)
 
 
 ## Dependencies
