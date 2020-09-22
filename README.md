@@ -330,7 +330,7 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 
 For details about the toolboxes that are included in this pipeline, please refer to the section below (i.e. EEGLAB EXTENSIONS table).
 
-The pipeline structure was inspired from :
+The pipeline structure was inspired from : \
 [Makoto's preprocessing pipeline](https://sccn.ucsd.edu/wiki/Makoto's_preprocessing_pipeline) \
 <a id="1">[1]</a> 
 Bidgely-Shamlo, N., Mullen, T., Kothe, C., Su, K.-M. & Robbins, K.A. (2015). 
