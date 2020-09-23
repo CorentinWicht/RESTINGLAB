@@ -333,7 +333,7 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 <a id="1">[1]</a> 
 Bidgely-Shamlo, N., Mullen, T., Kothe, C., Su, K.-M. & Robbins, K.A. (2015). 
 [The PREP pipeline: standardized preprocessing for large-scale EEG analysis.
-Frontiers in Neuroinformatics, 9, 1-20.](https://doi.org/10.3389/fninf.2015.00016)
+Frontiers in Neuroinformatics, 9, 1-20.](https://doi.org/10.3389/fninf.2015.00016) \
 <a id="1">[2]</a> 
 Gabard-Durnam, L.J., Mendez Leal, A.S., Wilkinson, C.L. & Levin, A.R. (2018). 
 [The Harvard Automated Processing Pipeline for Electroencephalography (HAPPE): Standardized Processing Software for Developmental and High-Artifact Data.
@@ -400,7 +400,7 @@ Groppe, D.M., Urbach, T.P. & Kutas, M. (2011).
 Psychophysiology, 48(12), 1711-1725.](https://doi.org/10.1111/j.1469-8986.2011.01273.x) 
 
 
-**Additional recommended publications on the topic:** \
+**Additional recommended publications on the topic:** 
 
 <a id="1">[15]</a> 
 Chaumon, M., Bishop, D.V.M. & Busch, N.A. (2015). 
