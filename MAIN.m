@@ -2,7 +2,7 @@
 
 % Version 0.62.1
 % Developped by <Corentin Wicht>
-% 21.08.2020
+% 23.09.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -13,12 +13,6 @@
 
                               % ENJOY %
 
-% DEPENDENCIES:
-% EEGLAB V. XXX (REF)
-% MORE
-
-
-% LICENSE !!!
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %      MAIN SCRIPT FOR PREPROCESSING AND ANALYSES
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -268,7 +262,7 @@ end
 
 % Only keeping subjects selected for analysis
 j=1;t=1;
-if isinteger(TempSubjectslist{1})
+if isnumeric(TempSubjectslist{1})
 TempSubjectslist=cell2mat(TempSubjectslist); 
 else; TempSubjectslist=cellfun(@(x) str2double(x),TempSubjectslist); 
 end
@@ -414,7 +408,7 @@ for k=1:length(FilesPath)
                 elseif sum(Condname_i) == 1 
                     CondPos = find(Condname_i == 1);
                 else % Case where the header and the data in columns are inverted
-                    Condname_i = contains(upper(Conditions_OrderCell(CurrentSubj,:)),upper(CurrentFileSplit{1}));
+                    Condname_i = contains(upper(Conditions_OrderCell(TempFilePos,:)),upper(CurrentFileSplit{1}));
                     CondPos = find(Condname_i == 1); Inverted = 1;
                 end
             else; CondPos = 1; 
