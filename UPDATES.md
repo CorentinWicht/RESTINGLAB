@@ -19,6 +19,7 @@ https://github.com/sccn/eeglab/issues/198
 https://github.com/sccn/eeglab/issues/184
 
 • TO DO
+Implement Spectrum Interpolation instead of CleanLine : https://github.com/fieldtrip/fieldtrip/blob/master/preproc/ft_preproc_dftfilter.m (need to test it!; https://www.sciencedirect.com/science/article/abs/pii/S1053811919300266?via%3Dihub)
 Check the source neighbouring matrix
 Include in GUI possibility to adjust the IC rejection criteria for MPT
 Finish the MPT source localisation script
