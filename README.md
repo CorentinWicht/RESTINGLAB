@@ -335,6 +335,7 @@ Bidgely-Shamlo, N., Mullen, T., Kothe, C., Su, K.-M. & Robbins, K.A. (2015).
 [The PREP pipeline: standardized preprocessing for large-scale EEG analysis.
 Frontiers in Neuroinformatics, 9, 1-20.](https://doi.org/10.3389/fninf.2015.00016)
 
+
 The choice of the EEGLAB toolboxes included in the pipeline where made according to: 
 1) ```BLINKER```: \
 <a id="1">[2]</a> 
@@ -378,21 +379,37 @@ Neuroimage, 72, 287-303.](https://doi.org/10.1016/j.neuroimage.2013.01.040) \
 Balkan, O., Virji-Babul, N., Miyakoshi, M., Makeig, S. & Garudadri, H. (2015). 
 [Source-domain spectral EEG analysis of sports-related concussion via Measure Projection Analysis.
 Conf Proc IEEE Eng Med Biol Soc, 4053-4056.](https://doi.org/10.1109/EMBC.2015.7319284) 
-
 7) ```Multiquadratic interpolation```: \
-Reconstruction of electroencephalographic data using radial basis functions (2016)
+<a id="1">[11]</a> 
+Jäger, J., Klein, A., Buhmann, M. & Skrandies, W. (2016). 
+[Reconstruction of electroencephalographic data using radial basis functions.
+Clinical Neurophysiology, 127(4), 1978-1983.](https://doi.org/10.1016/j.clinph.2016.01.003) 
 8) ```ept_TFCE``` : \
-Advanced EEG analysis using threshold-free cluster-enhancement and non-parametric statistics (2013)
+<a id="1">[12]</a> 
+Mensen, A. & Khatami, R. (2013). 
+[Advanced EEG analysis using threshold-free cluster-enhancement and non-parametric statistics.
+NeuroImage, 67, 111-118.](https://doi.org/10.1016/j.neuroimage.2012.10.027) 
 9) ```FMUT``` : \
-Mass univariate analysis of event‐related brain potentials_fields I_A critical tutorial review (2011)
+<a id="1">[13]</a> 
+Groppe, D.M., Urbach, T.P. & Kutas, M. (2011). 
+[Mass univariate analysis of event-related brain potentials/fields I: a critical tutorial review.
+Psychophysiology, 48(12), 1711-1725.](https://doi.org/10.1111/j.1469-8986.2011.01273.x) 
 
 
 Additional recommended publications on the topic: \
-Removing electroencephalographic artifacts by blind source separation (2000) \
-Improved rejection of artifacts from EEG data using high-order statistics and independent component analysis (2005) \
-A practical guide to the selection of independent components of the (2015) \
-EEGLAB, MPT, NetSIFT, NFT, BCILAB, and ERICA_New tools for Advanced EEG Processing (2011) \
-Removing electroencephalographic artifacts by blind source separation (2000)
+<a id="1">[14]</a> 
+Chaumon, M., Bishop, D.V.M. & Busch, N.A. (2015). 
+[A practical guide to the selection of independent components of the electroencephalogram for artifact correction.
+J Neurosci Methods, 30, 47-63.](https://doi.org/10.1016/j.jneumeth.2015.02.025) \
+<a id="1">[15]</a> 
+Jung, T.P., Makeig, S., Humphries, C., Lee, T.W., McKeown, M.J., Iragui, V. & Sejnowski, T.J. (2011). 
+[EEGLAB, MPT, NetSIFT, NFT, BCILAB, and ERICA_New tools for Advanced EEG Processing.
+Computational Intelligence and Neuroscience, e130714.](https://doi.org/10.1155/2011/130714) \
+<a id="1">[16]</a> 
+Jung, T.P., Makeig, S., Humphries, C., Lee, T.W., McKeown, M.J., Iragui, V. & Sejnowski, T.J. (2000). 
+[Removing electroencephalographic artifacts by blind source separation.
+Psychophysiology, 37(2), 163-178.](https://doi.org/10.1111/1469-8986.3720163) 
+
 
 
 ## Dependencies
