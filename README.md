@@ -328,14 +328,71 @@ DD_MM_YYYY-HH_MM = Date and time of analysis
 
 ![](tools/screenshots/PipelineLegend.png)
 
-For details about the toolboxes that are included in this pipeline, please refer to the section below (i.e. EEGLAB EXTENSIONS table).
-
 The pipeline structure was inspired from : \
 [Makoto's preprocessing pipeline](https://sccn.ucsd.edu/wiki/Makoto's_preprocessing_pipeline) \
 <a id="1">[1]</a> 
 Bidgely-Shamlo, N., Mullen, T., Kothe, C., Su, K.-M. & Robbins, K.A. (2015). 
 [The PREP pipeline: standardized preprocessing for large-scale EEG analysis.
 Frontiers in Neuroinformatics, 9, 1-20.](https://doi.org/10.3389/fninf.2015.00016)
+
+The choice of the EEGLAB toolboxes included in the pipeline where made according to: \
+1) ```BLINKER```: \
+<a id="1">[2]</a> 
+Kleifges, K., Bidgely-Shamlo, N., Kerick, S.E. & Robbins, K.A. (2017). 
+[BLINKER: Automated Extraction of Ocular Indices from EEG Enabling Large-Scale Analysis.
+Frontiers in Neuroscience, 11, 1-17.](https://doi.org/10.3389/fnins.2017.00012) \
+2) ```ASR```: \
+<a id="1">[3]</a> 
+Mullen, T.R., Kothe, C.A.E., Chi, Y.M., Ojeda, A., Kerth, T., Makeig, S., Jung, T.-P. & Cauwenberghs, G. (2015). 
+[Real-Time Neuroimaging and Cognitive Monitoring Using Wearable Dry EEG.
+IEEE Trans Biomed Eng, 62(11), 2553-2567.](https://doi.org/10.1109/TBME.2015.2481482) \
+<a id="1">[4]</a> 
+Chang, C.-Y. Hsu, S.-H., Pion-Tonachini, L. & Jung, T.-P. (2018). 
+[Evaluation of Artifact Subspace Reconstruction for Automatic EEG Artifact Removal.
+Conf Proc IEEE Eng Med Biol Soc, 1242-1245.](https://doi.org/10.1109/EMBC.2018.8512547) \
+3) ```ICLABEL```: \
+<a id="1">[5]</a> 
+Pion-Tonachini, L., Kreutz-Delgado, K. & Makeig, S. (2019). 
+[ICLabel: An automated electroencephalographic independent component classifier, dataset, and website.
+NeuroImage, 198, 181-197.](https://doi.org/10.1016/j.neuroimage.2019.05.026) \
+4) ```AMICA```: \
+<a id="1">[6]</a> 
+Parlmer, Makeig, S., Kreutz-Delgado, K. & Rao, B.D. (2008). 
+[Newton method for the ICA mixture model.
+2008 IEEE International Conference on Acoustics, Speech and Signal Processing, Las Vegas, NV, 2008, pp. 1805-1808.](https://doi.org/10.1109/ICASSP.2008.4517982) \
+<a id="1">[7]</a> 
+Delorme, A., Parlmer, J., Onton, J., Oostenveld, R. & Makeig, S. (2012). 
+[Independent EEG Sources Are Dipolar.
+PLoS ONE, 7(2), e30135.](https://doi.org/10.1371/journal.pone.0030135) \
+5) ```MST```: \
+<a id="1">[8]</a> 
+Poulsen, A.T., Pedroni, A., LAnger, N. & Hansen, L.K. (2012). 
+[Microstate EEGlab toolbox: An introductory guide.
+bioRxiv, 289850.](https://doi.org/10.1101/289850) \
+6) ```MPT```: \
+<a id="1">[9]</a> 
+Bigdely-Shamlo, N., Mullen, T., Kreutz-Delgado, K. & Makeig, S. (2013). 
+[Measure projection analysis: a probabilistic approach to EEG source comparison and multi-subject inference.
+Neuroimage, 72, 287-303.](https://doi.org/10.1016/j.neuroimage.2013.01.040) \
+<a id="1">[10]</a> 
+Balkan, O., Virji-Babul, N., Miyakoshi, M., Makeig, S. & Garudadri, H. (2015). 
+[Source-domain spectral EEG analysis of sports-related concussion via Measure Projection Analysis.
+Conf Proc IEEE Eng Med Biol Soc, 4053-4056.](https://doi.org/10.1109/EMBC.2015.7319284) \
+
+7) ```Multiquadratic interpolation```: \
+Reconstruction of electroencephalographic data using radial basis functions (2016)
+8) ```ept_TFCE``` : \
+Advanced EEG analysis using threshold-free cluster-enhancement and non-parametric statistics (2013)
+9) ```FMUT``` : \
+Mass univariate analysis of event‐related brain potentials_fields I_A critical tutorial review (2011)
+
+
+Additional recommended publications on the topic:
+Removing electroencephalographic artifacts by blind source separation (2000)
+Improved rejection of artifacts from EEG data using high-order statistics and independent component analysis (2005)
+A practical guide to the selection of independent components of the (2015)
+EEGLAB, MPT, NetSIFT, NFT, BCILAB, and ERICA_New tools for Advanced EEG Processing (2011)
+Removing electroencephalographic artifacts by blind source separation (2000)
 
 
 ## Dependencies
@@ -362,7 +419,7 @@ Frontiers in Neuroinformatics, 9, 1-20.](https://doi.org/10.3389/fninf.2015.0001
 | [EEGBrowser v1.0 ](https://github.com/aojeda/EEGBrowser) | Enhanced visualization for continuous EEG recordings | 
 | [fitTwoDipoles v0.01](https://link.springer.com/chapter/10.1007%2F978-3-319-32703-7_22) | Routine for automated recommendation of ICs that may be best fit with a position-symmetric dual-dipole model | 
 | [ICLabel v1.2.4](https://sccn.ucsd.edu/wiki/ICLabel) | Automatic independent component (IC) classifcation based on the ICLabel project's classifier | 
-| [MST v1.0](https://github.com/atpoulsen/Microstate-EEGlab-toolbox) | Tee toolbox includes ability to run microstate analysis on both ERP and spontaneous (e.g. resting state) EEG | 
+| [MST v1.0](https://github.com/atpoulsen/Microstate-EEGlab-toolbox) | The toolbox includes ability to run microstate analysis on both ERP and spontaneous (e.g. resting state) EEG | 
 | [Viewprops v1.5.4](https://sccn.ucsd.edu/wiki/Viewprops) | Enhanced visualization of independent components (ICA) | 
 
 
