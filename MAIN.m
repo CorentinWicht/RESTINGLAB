@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.62.1
+% Version 0.62.2
 % Developped by <Corentin Wicht>
-% 23.09.2020
+% 25.09.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -34,7 +34,6 @@ warning off MATLAB:subscripting:noSubscriptsSpecified
 addpath([CurrentPWD '\Functions\eeglab-develop']);
 addpath([CurrentPWD '\Functions\']);
 addpath(genpath([CurrentPWD '\Functions\Dependencies']));
-% addpath(genpath([CurrentPWD '\Functions\eeglab14_1_2b\plugins\blinkerv1.1.2']));
 addpath([CurrentPWD '\Functions\EEGInterp']); 
 
 %-------------------------------------------------------------------------%
@@ -116,7 +115,6 @@ if ~isempty(WithinFactors)
     end
 else
     Conditions = 1;
-    % Conditions_Names =Session1; % MIGHT CAUSE AN ERROR !!!!
 end
 
 % EEG data
@@ -280,7 +278,6 @@ for k=1:length(TempSubjectslist)
         
         % This will detect files for which there is no data to analyze
         if sum(cell2mat(ProcessData(k,:)))<1
-%             SubjectsRemoved(t) = TempSubjectslist(k);
             SubjectsRemovedIdx(t) = k;
             t=t+1;
             break
@@ -296,7 +293,6 @@ end
 % Building the subjects selection list based on GUI data
 SubjectsIncluded = [num2cell(TempSubjectslist) ProcessData];
 FilesToProcess = 0;
-% SubjectsIncluded = cellfun(@(x) num2str(x), SubjectsIncluded,'UniformOutput',false);
 
 % No idea where it comes from but sometimes it is loaded
 if exist('Participant_load','var')
@@ -339,27 +335,7 @@ for k=1:length(FilesPath)
     end
 
     % Only keeping the ones containg the common name
-%     if strcmpi(Extension,'.bdf')
-        % If file extension is .bdf 
-        
-    % Works for .bdf! needs to be tested for .set !!! Might be a problem 
-    % due to more than 1 file per data    
     FileList = FileList(contains({FileList.name},FileNames));
-    
-%         p=1;
-%         for m=1:length(FileList)
-%             if sum(ismember(FileList(m).name,FileNames))<=length(FileNames)
-%                 NewFileList(p,1) = FileList(m);
-%                 p=p+1;
-%             end
-%         end
-%         FileList = NewFileList;
-%     else
-%         % If file extension is .set
-%         FilesLength = cellfun(@(x) length(x), {FileList.name});
-%         [~,SmallPos] = mink(FilesLength,length(Conditions)*length(Groups_Names)*length(Subjectslist));
-%         FileList = FileList(SmallPos);
-%     end
     
     % List of all folders in the group
     GroupFoldersTemp = {FileList(contains({FileList.folder},FilesPath{k})).folder};
@@ -385,22 +361,13 @@ for k=1:length(FilesPath)
             
             % Position in excel files 
             TempFilePos = cellfun(@(x) x==CurrentSubj, SubjectsIncluded(:,1)); % Subject
-%             if length(Conditions) > 1 % Session
-%                 CondPos = find(contains(upper(Conditions_Labels),upper(CurrentFileSplit{1})));
-%             else
-%                 CondPos = 1;
-%             end
-            
+
             % Preallocating array
             Condname_i = zeros([size(Conditions_Labels,2) 1]); Inverted = 0;
 
             % For each condition, see if we find it in the name or subpath
             if length(Conditions) > 1
-%                 for f = 1:size(Conditions_Labels,2)
-%                     Condname_i(f) = contains(upper(CurrentFileSplit{1}),upper(Conditions_Labels{f}));
-%                 end
                   Condname_i = contains(upper(Conditions_Labels),upper(CurrentFileSplit{1}));
-
                 
                 % In case of multiple positives, take the lengthier condition name
                 if sum(Condname_i) > 1
@@ -467,7 +434,7 @@ try
         ExcelFiles=dir([ExcelPath  '\**/*' '.xlsx']);
 
         % Creating excel templates if they do not exist
-        if length(ExcelFiles)<=1 % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
+        if length(ExcelFiles)<=1
             CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[SavePath '\Excel\' Date_Start '\'],ExcelFiles);
         end
     else
@@ -476,7 +443,7 @@ try
         ExcelFiles=dir([ExcelPath  '\**/*' '.xlsx']);
 
         % Creating excel templates if they do not exist
-        if isempty(ExcelFiles) % sum(contains({ExcelFiles.name}, 'AreaAmplitude'))==0 && sum(contains({ExcelFiles.name}, 'GPS'))==0
+        if isempty(ExcelFiles)
             CreateTemplates(num2cell(TempSubjectslist),Conditions_Names,FreqNames,Channels,[Temp.path '\' Date_Start '\'],ExcelFiles);
         end
     end
@@ -531,8 +498,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
         Pos = find(Subjectslist == ParticipantNumber);
 
         % Retrieving current subject information
-        % WILL NOT WORK WITH 2 BETWEEN-SUBJ FACTORS !! 
-        
         FolderTemplate = regexp(SplitFileTemp{end},'\D*','Match');
         if length(FilesPath)>1
             CurrentFile = Participant_load.(Conditions_OrderCell{Pos,end}). ...  
@@ -574,7 +539,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             if WaitBarApp.CancelRequested
                 return
             end
-            
             
             %% IMPORT
             % Creating first dataset
@@ -629,9 +593,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % High-pass/Low-pass filter
             EEG = pop_eegfiltnew(EEG,HighPass,LowPass); 
            
-    %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-    %                    ARTIFACTS REJECTION
-    %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+%                    ARTIFACTS REJECTION
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%     
     
             % Waitbar updating 
             WaitBarApp.Title = '1. PREPROCESSING: CleanLine';
@@ -647,14 +611,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             close gcf;
                  
             % Finding current subject export name
-%             CurrentSession = CurrentFile.FileList{h};
-%             CurrentSession = strsplit(CurrentSession,'.');
-%             SubjName = strtok(CurrentSession{1},FileNames);
-%             % If there is no file specific name
-%             if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFile.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-%             end
+            Temp = strsplit(CurrentFile.Path{:},'\');
+            SubjName = [Temp{end} '_'];
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %                    INTERPOLATION/CHANNELS REJECTION
@@ -672,8 +630,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             try
                 % Function from the PrepPipeline to perform 1) Bad Channels
                 % Detection and rejection
-%                 [~, InterpChanStruct] =  performReference(EEG);
-                     
                 % Parameters
                 InterpChanStruct = getReferenceStructure();
                 defaults = getPrepDefaults(EEG, 'reference');
@@ -763,17 +719,12 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 
                 % Run BLINKER algorithm
                 try
-                    [EEG, ~, blinks, blinkFits,blinkProperties] = pop_blinker(EEG, Params);
+                    [EEG, ~, ~, blinkFits,~] = pop_blinker(EEG, Params);
                     close gcf;fprintf('%d blinks identified by BLINKER\n',length(blinkFits));
                 catch
                     disp('0 blink identified by BLINKER\n');
                 end
                 
-                % Add the blinks to EEG.event
-%                 [EEG, ~] = addBlinkEvents(EEG, blinks, blinkFits,...
-%                     blinkProperties, Params.fieldList);
-%                 eegplot(EEG.data,'events',EEG.event,'winlength',30)
-
                 % Retrieve blinks latency
                 for m=1:length(blinkFits)
                     AbsLatency(m,:) = [blinkFits(m).leftBase blinkFits(m).rightBase];
@@ -789,87 +740,81 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 EEG = RemovEvents(EEG,'EventTypes',{'boundary'});
             end
 
-            if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp') ...
-                    && ~isempty(blinkFits)
-                
-                % THIS IS CURRENTLY NOT WORKING!!! I CANNOT FORCE TO
-                % INTERPOLATE ALL THE SIGNAL I AM PROVIDING IT!!!!
-                % SHIT....
-                
-                % 1) ASR 1st run
-                % ASR settings
-                asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
-                BurstCriterion = str2double(AnswerASR{1});asr_stepsize = 4;
-                maxdims = 1;usegpu = false;
-
-                % Creating a clean reference section
-                EEGCleanRef = clean_windows(EEG,0.075,[-3.5 5.5],1); 
-
-               %  Building the Blink EEG dataset
-                BlinkEEG = EEG; TempEEG = EEG;
-                BlinkEEG.data = []; BlinkEEG.event = []; Pos = 1;
-                for p=1:size(AbsLatency,1)
-%                     BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
-%                         EEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
-                    BlinkEEG.data = [BlinkEEG.data EEG.data(:,AbsLatency(p,1):AbsLatency(p,2))];
-                    BlinkEEG.event(Pos).type = 'leftBase';
-                    if p>1
-                        BlinkEEG.event(Pos).latency = BlinkEEG.event(Pos-1).latency+1;
-                    else
-                        BlinkEEG.event(Pos).latency = 1;
-                    end
-                    Pos = Pos + 1;
-                    BlinkEEG.event(Pos).type = 'rightBase';
-                    BlinkEEG.event(Pos).latency = BlinkEEG.event(Pos-1).latency + (AbsLatency(p,2)-AbsLatency(p,1));
-                    Pos = Pos + 1;
-                end
-            
-                % Calibrate on the reference data
-                state = asr_calibrate_r(EEGCleanRef.data, EEGCleanRef.srate,...
-                    BurstCriterion, [], [], [], [], [], [], []);
-
-                % Extrapolate last few samples of the signal
-                sig = [BlinkEEG.data bsxfun(@minus,2*BlinkEEG.data(:,end),...
-                    BlinkEEG.data(:,(end-1):-1:end-round(asr_windowlen/2*BlinkEEG.srate)))];
-                
-                % Process signal using ASR
-                [BlinkEEG.data,state] = asr_process_r(sig,BlinkEEG.srate,state,...
-                    asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,MaxMemory,usegpu);
-                
-                % Shift signal content back (to compensate for processing delay)
-                BlinkEEG.data(:,1:size(state.carry,2)) = [];
-
-                % Replace original data with the Blink corrected data
-                NEWEEG = EEG; Pos = 1:2:size(AbsLatency,1)*2;
-                for p=1:size(AbsLatency,1)
-                    NEWEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
-                        BlinkEEG.data(:,BlinkEEG.event(Pos(p)).latency:...
-                        BlinkEEG.event(Pos(p)+1).latency);
-                end
-
-                % Allows for visual inspection of old/new EEG (Optional)
-                if strcmpi(Automaticity,'Yes')
-                    vis_artifacts(NEWEEG,EEG);
-                    disp('Ignore errors above !!');
-                    % Holds the figure until inspection is over
-                    Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
-                    uiwait(Fig);
-                    close gcf
-                end 
-                
-                % Replace artifact data
-                EEG.data = NEWEEG.data;
-            end
+%             if strcmpi(BLINKER,'Yes') && strcmpi(AnswerBLINKER,'interp') ...
+%                     && ~isempty(blinkFits)
+%                 
+%                 % THIS IS CURRENTLY NOT WORKING!!! I CANNOT FORCE TO
+%                 % INTERPOLATE ALL THE SIGNAL I AM PROVIDING IT!!!!
+%                 % SHIT....
+%                 
+%                 % 1) ASR 1st run
+%                 % ASR settings
+%                 asr_windowlen = max(0.5,1.5*EEG.nbchan/EEG.srate);
+%                 BurstCriterion = str2double(AnswerASR{1});asr_stepsize = 4;
+%                 maxdims = 1;usegpu = false;
+% 
+%                 % Creating a clean reference section
+%                 EEGCleanRef = clean_windows(EEG,0.075,[-3.5 5.5],1); 
+% 
+%                %  Building the Blink EEG dataset
+%                 BlinkEEG = EEG; TempEEG = EEG;
+%                 BlinkEEG.data = []; BlinkEEG.event = []; Pos = 1;
+%                 for p=1:size(AbsLatency,1)
+% %                     BlinkEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
+% %                         EEG.data(:,AbsLatency(p,1):AbsLatency(p,2));
+%                     BlinkEEG.data = [BlinkEEG.data EEG.data(:,AbsLatency(p,1):AbsLatency(p,2))];
+%                     BlinkEEG.event(Pos).type = 'leftBase';
+%                     if p>1
+%                         BlinkEEG.event(Pos).latency = BlinkEEG.event(Pos-1).latency+1;
+%                     else
+%                         BlinkEEG.event(Pos).latency = 1;
+%                     end
+%                     Pos = Pos + 1;
+%                     BlinkEEG.event(Pos).type = 'rightBase';
+%                     BlinkEEG.event(Pos).latency = BlinkEEG.event(Pos-1).latency + (AbsLatency(p,2)-AbsLatency(p,1));
+%                     Pos = Pos + 1;
+%                 end
+%             
+%                 % Calibrate on the reference data
+%                 state = asr_calibrate_r(EEGCleanRef.data, EEGCleanRef.srate,...
+%                     BurstCriterion, [], [], [], [], [], [], []);
+% 
+%                 % Extrapolate last few samples of the signal
+%                 sig = [BlinkEEG.data bsxfun(@minus,2*BlinkEEG.data(:,end),...
+%                     BlinkEEG.data(:,(end-1):-1:end-round(asr_windowlen/2*BlinkEEG.srate)))];
+%                 
+%                 % Process signal using ASR
+%                 [BlinkEEG.data,state] = asr_process_r(sig,BlinkEEG.srate,state,...
+%                     asr_windowlen,asr_windowlen/2,asr_stepsize,maxdims,MaxMemory,usegpu);
+%                 
+%                 % Shift signal content back (to compensate for processing delay)
+%                 BlinkEEG.data(:,1:size(state.carry,2)) = [];
+% 
+%                 % Replace original data with the Blink corrected data
+%                 NEWEEG = EEG; Pos = 1:2:size(AbsLatency,1)*2;
+%                 for p=1:size(AbsLatency,1)
+%                     NEWEEG.data(:,AbsLatency(p,1):AbsLatency(p,2)) = ...
+%                         BlinkEEG.data(:,BlinkEEG.event(Pos(p)).latency:...
+%                         BlinkEEG.event(Pos(p)+1).latency);
+%                 end
+% 
+%                 % Allows for visual inspection of old/new EEG (Optional)
+%                 if strcmpi(Automaticity,'Yes')
+%                     vis_artifacts(NEWEEG,EEG);
+%                     disp('Ignore errors above !!');
+%                     % Holds the figure until inspection is over
+%                     Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
+%                     uiwait(Fig);
+%                     close gcf
+%                 end 
+%                 
+%                 % Replace artifact data
+%                 EEG.data = NEWEEG.data;
+%             end
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %                    SLEEP / NO SLEEP
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Here we implemented a method to determine segments of
-            % recording where the participant was awake or asleep.
-            % The analysis is based on Diaz et al. (2016).
-            % Overall higher amplitude of alpha band compared to theta band
-            % would mean that the participant is still awake. If the opposite
-            % is true, then the epoch will be classified as sleep.
 
            if strcmpi(Sleep, 'Yes') 
                 
@@ -909,119 +854,119 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 %                     SecondsEpoch, SamplingRate, FreqResol, LOC, ROC);
 
                 %% 
-                % Temporary epoching the file 
-                EEG = eeg_regepochs(EEG, SecondsEpoch);
-
-                % WAVELET MORLET DECOMPOSITION
-                % composed or real and imaginery numbers : Gaussian and complex sine wave
-                % see : https://jallen.faculty.arizona.edu/sites/jallen.faculty.arizona.edu/files/Chapter_13_Complex_Morlet_Wavelets_Power_Phase.pdf
-                % and : http://www.mikexcohen.com/left_toc.html
-                
-                % Waitbar updating 
-                WaitBarApp.Title = '1. PREPROCESSING: Sleep rejection';
-                
-                % Preallocation
-                WTData.Morlet=[];
-                SleepNoSleep=zeros(size(EEG.data,3),1); 
-
-                % Looping over epochs
-                for j=1:size(EEG.data,3)
-                   % Computing Wavelet Morlet Decomposition
-                   [WTData.Morlet(:,:,j), Freq]=wt(EEG.data(:,:,j),EEG.srate,'fmin',2.6,'fmax',...
-                        48,'Preprocess','on','Wavelet','Morlet','Padding',0,'plot','off','Display','off','f0',0.1);
-                end
-
-                % Calculating Power of complex number (i.e. absolute value)
-                WTData.Absolute.All=abs(WTData.Morlet);
-
-                % Calculating EEG bandpass filtered (i.e. only taking real number)
-                % WTData.Absolute.All=real(WTData.Morlet);
-                % Calculating Phase of complex number (arctan(imag/real))
-                % WTData.Absolute.All=arctan(imag(WTData.Morlet)/real(WTData.Morlet));
-
-                % Looking for indexes for Theta and Alpha bands
-                Index.Theta=find(Freq>=5 & Freq<=7);
-                Index.Alpha=find(Freq>=8 & Freq<=12);
-
-                % Computing average WTdata for Theta and Alpha indexes
-                WTData.Absolute.Theta=mean(WTData.Absolute.All(Index.Theta,:,:),1); 
-                WTData.Absolute.Alpha=mean(WTData.Absolute.All(Index.Alpha,:,:),1);
-                WTData.Absolute.Theta=squeeze(mean(WTData.Absolute.Theta,2));
-                WTData.Absolute.Alpha=squeeze(mean(WTData.Absolute.Alpha,2));
-
-                % Plotting the amplitude values (absolute)
-                figure
-                plot(1:length(WTData.Absolute.Theta),WTData.Absolute.Theta)
-                hold on 
-                plot(1:length(WTData.Absolute.Alpha),WTData.Absolute.Alpha)
-                title('Morlet Wavelet Decomposition')
-                xlabel('Epochs')
-                ylabel('Amplitude (absolute values)')
-                legend('Theta','Alpha')
-
-                % Exporting SleepNoSleep figures
-                if sum(~SavePath)<1
-                    SaveFigures(gcf,[SavePath '\Exports\' Date_Start '\SleepNoSleep\'...
-                        sprintf('WaveletMorletSleep_%d_%s',ParticipantNumber,...
-                        Conditions_OrderCell{Pos,WhichCond})],'w','bmp');
-                else
-                    SaveFigures(gcf,[CurrentPWD '\Exports\' Date_Start '\SleepNoSleep\'...
-                        sprintf('WaveletMorletSleep_%d_%s',ParticipantNumber,...
-                        Conditions_OrderCell{Pos,WhichCond})],'w','bmp');
-                end
-
-                % Statistical decision if asleep or not
-                % If = 1 means asleep / = 0 means awake
-                for i=1:size(EEG.data,3)
-                    if WTData.Absolute.Alpha(i)<WTData.Absolute.Theta(i) 
-                        SleepNoSleep(i)=1;
-                    else
-                        SleepNoSleep(i)=0;
-                    end
-                end
-
-                % Preparing list of trials in Awake/Asleep states
-                TrialsAwake=[];
-                TrialsAsleep=[];
-                i=1;
-                j=1;
-                for n=1:length(SleepNoSleep)
-                    if SleepNoSleep(n)==0
-                        TrialsAwake(i)=n;
-                        i=i+1;
-                    else
-                        TrialsAsleep(j)=n;
-                        j=j+1;
-                    end
-                end
-
-                % EEG will only contain the trials corresponding to AWAKE state
-                if ~isempty(TrialsAsleep)
-                    EEG = pop_select(EEG, 'trial', TrialsAwake);
-                end
-
-                % Indexes to store data in correct columns
-                TempIndex = find(contains(lower(SleepNoSleepTable.Properties.VariableNames),...
-                    lower(Conditions_Names{WhichCond})));
-
-                % Filling the SleepNoSleep table
-                SleepNoSleepTable(Pos,TempIndex(1))={length(TrialsAsleep)};
-                SleepNoSleepTable(Pos,TempIndex(2))={length(TrialsAwake)};
-
-                % Unepoching the file 
-                % Epoching was only temporary to perform Wavelet Morlet Conv
-                EEG = eeg_epoch2continuous(EEG);
-
-                % Removing the events that were created by Epoching
-                EventFields={'event','urevent'};
-                for t=1:length(EventFields)
-                    IdxX = contains({EEG.(EventFields{t}).type},'X'); 
-                    IdxBound = contains({EEG.(EventFields{t}).type},'boundary');
-                    EEG.(EventFields{t})(or(IdxX,IdxBound))=[];
-                end
+%                 % Temporary epoching the file 
+%                 EEG = eeg_regepochs(EEG, SecondsEpoch);
+% 
+%                 % WAVELET MORLET DECOMPOSITION
+%                 % composed or real and imaginery numbers : Gaussian and complex sine wave
+%                 % see : https://jallen.faculty.arizona.edu/sites/jallen.faculty.arizona.edu/files/Chapter_13_Complex_Morlet_Wavelets_Power_Phase.pdf
+%                 % and : http://www.mikexcohen.com/left_toc.html
+%                 
+%                 % Waitbar updating 
+%                 WaitBarApp.Title = '1. PREPROCESSING: Sleep rejection';
+%                 
+%                 % Preallocation
+%                 WTData.Morlet=[];
+%                 SleepNoSleep=zeros(size(EEG.data,3),1); 
+% 
+%                 % Looping over epochs
+%                 for j=1:size(EEG.data,3)
+%                    % Computing Wavelet Morlet Decomposition
+%                    [WTData.Morlet(:,:,j), Freq]=wt(EEG.data(:,:,j),EEG.srate,'fmin',2.6,'fmax',...
+%                         48,'Preprocess','on','Wavelet','Morlet','Padding',0,'plot','off','Display','off','f0',0.1);
+%                 end
+% 
+%                 % Calculating Power of complex number (i.e. absolute value)
+%                 WTData.Absolute.All=abs(WTData.Morlet);
+% 
+%                 % Calculating EEG bandpass filtered (i.e. only taking real number)
+%                 % WTData.Absolute.All=real(WTData.Morlet);
+%                 % Calculating Phase of complex number (arctan(imag/real))
+%                 % WTData.Absolute.All=arctan(imag(WTData.Morlet)/real(WTData.Morlet));
+% 
+%                 % Looking for indexes for Theta and Alpha bands
+%                 Index.Theta=find(Freq>=5 & Freq<=7);
+%                 Index.Alpha=find(Freq>=8 & Freq<=12);
+% 
+%                 % Computing average WTdata for Theta and Alpha indexes
+%                 WTData.Absolute.Theta=mean(WTData.Absolute.All(Index.Theta,:,:),1); 
+%                 WTData.Absolute.Alpha=mean(WTData.Absolute.All(Index.Alpha,:,:),1);
+%                 WTData.Absolute.Theta=squeeze(mean(WTData.Absolute.Theta,2));
+%                 WTData.Absolute.Alpha=squeeze(mean(WTData.Absolute.Alpha,2));
+% 
+%                 % Plotting the amplitude values (absolute)
+%                 figure
+%                 plot(1:length(WTData.Absolute.Theta),WTData.Absolute.Theta)
+%                 hold on 
+%                 plot(1:length(WTData.Absolute.Alpha),WTData.Absolute.Alpha)
+%                 title('Morlet Wavelet Decomposition')
+%                 xlabel('Epochs')
+%                 ylabel('Amplitude (absolute values)')
+%                 legend('Theta','Alpha')
+% 
+%                 % Exporting SleepNoSleep figures
+%                 if sum(~SavePath)<1
+%                     SaveFigures(gcf,[SavePath '\Exports\' Date_Start '\SleepNoSleep\'...
+%                         sprintf('WaveletMorletSleep_%d_%s',ParticipantNumber,...
+%                         Conditions_OrderCell{Pos,WhichCond})],'w','bmp');
+%                 else
+%                     SaveFigures(gcf,[CurrentPWD '\Exports\' Date_Start '\SleepNoSleep\'...
+%                         sprintf('WaveletMorletSleep_%d_%s',ParticipantNumber,...
+%                         Conditions_OrderCell{Pos,WhichCond})],'w','bmp');
+%                 end
+% 
+%                 % Statistical decision if asleep or not
+%                 % If = 1 means asleep / = 0 means awake
+%                 for i=1:size(EEG.data,3)
+%                     if WTData.Absolute.Alpha(i)<WTData.Absolute.Theta(i) 
+%                         SleepNoSleep(i)=1;
+%                     else
+%                         SleepNoSleep(i)=0;
+%                     end
+%                 end
+% 
+%                 % Preparing list of trials in Awake/Asleep states
+%                 TrialsAwake=[];
+%                 TrialsAsleep=[];
+%                 i=1;
+%                 j=1;
+%                 for n=1:length(SleepNoSleep)
+%                     if SleepNoSleep(n)==0
+%                         TrialsAwake(i)=n;
+%                         i=i+1;
+%                     else
+%                         TrialsAsleep(j)=n;
+%                         j=j+1;
+%                     end
+%                 end
+% 
+%                 % EEG will only contain the trials corresponding to AWAKE state
+%                 if ~isempty(TrialsAsleep)
+%                     EEG = pop_select(EEG, 'trial', TrialsAwake);
+%                 end
+% 
+%                 % Indexes to store data in correct columns
+%                 TempIndex = find(contains(lower(SleepNoSleepTable.Properties.VariableNames),...
+%                     lower(Conditions_Names{WhichCond})));
+% 
+%                 % Filling the SleepNoSleep table
+%                 SleepNoSleepTable(Pos,TempIndex(1))={length(TrialsAsleep)};
+%                 SleepNoSleepTable(Pos,TempIndex(2))={length(TrialsAwake)};
+% 
+%                 % Unepoching the file 
+%                 % Epoching was only temporary to perform Wavelet Morlet Conv
+%                 EEG = eeg_epoch2continuous(EEG);
+% 
+%                 % Removing the events that were created by Epoching
+%                 EventFields={'event','urevent'};
+%                 for t=1:length(EventFields)
+%                     IdxX = contains({EEG.(EventFields{t}).type},'X'); 
+%                     IdxBound = contains({EEG.(EventFields{t}).type},'boundary');
+%                     EEG.(EventFields{t})(or(IdxX,IdxBound))=[];
+%                 end
             end
             
-            % Save DATASET 1 - FILTERED (MANDATORY)
+            % Save DATASET 1 - FILTERED 
             if strcmpi(ExpFilt,'Yes')
                 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
                     sprintf(Dataset_filtCleaned, SubjName,WhichCond)...
@@ -1031,47 +976,29 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %             BAD CHANNELS INTERPOLATION AND AVERAGE REFERENCING
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%             ErrorArtifacts = {};
-%             r = 1;
-%             try
-                % Reintroduce the bad channels data 
-                Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
-                for m=Channels
-                   if ~ismember(m,EEG.BadChans.InterpChans) 
-                       Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
-                   else
-                       % Restricting channel data length since EEG.data
-                       % size might have changed with artifact rejection
-                       Temp(m,:) = EEG.BadChans.data(PosBad,1:size(EEG.data,2));PosBad = PosBad + 1;
-                   end
-                end
-                
-                % Adjust the EEG structure
-                EEG.data = Temp; EEG.chanlocs = EEG.BadChans.chanlocs;
-                EEG.nbchan = EEG.BadChans.nbchan;
-                EEG = eeg_checkset(EEG);
-                
-                % Multiquadratics bad channels interpolation
-                EEG.data = EEGinterp('MQ',0.05,EEG,EEG.BadChans.InterpChans);
-                
-                % Average referencing
-                EEG = average_ref(EEG);
-                
-                % Use this function from the PrepPipeline to perform "Robust
-                % Referencing" and Detection of Bad Channels Rejection/Interpolation
-%                 [EEG, InterpChanStruct] =  performReference(EEG);
-%                 EEG.etc.noiseDetection.reference = InterpChanStruct;
-%                 EEG.etc.noiseDetection.fullReferenceInfo = true;
-%                 EEG.etc.noiseDetection.interpolatedChannelNumbers = ...
-%                     InterpChanStruct.interpolatedChannels.all;
-%                 EEG.etc.noiseDetection.stillNoisyChannelNumbers = ...
-%                     InterpChanStruct.noisyStatistics.noisyChannels.all;
-%             catch
-                % Write error to the LOG
-%                 ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
-%                 r = r+1;
-%                 break
-%             end
+           
+            % Reintroduce the bad channels data 
+            Temp = zeros(length(Channels),size(EEG.data,2)); PosGood = 1; PosBad = 1;
+            for m=Channels
+               if ~ismember(m,EEG.BadChans.InterpChans) 
+                   Temp(m,:) = EEG.data(PosGood,:); PosGood = PosGood + 1;
+               else
+                   % Restricting channel data length since EEG.data
+                   % size might have changed with artifact rejection
+                   Temp(m,:) = EEG.BadChans.data(PosBad,1:size(EEG.data,2));PosBad = PosBad + 1;
+               end
+            end
+
+            % Adjust the EEG structure
+            EEG.data = Temp; EEG.chanlocs = EEG.BadChans.chanlocs;
+            EEG.nbchan = EEG.BadChans.nbchan;
+            EEG = eeg_checkset(EEG); ALLEEG = EEG;
+
+            % Multiquadratics bad channels interpolation
+            EEG.data = EEGinterp('MQ',0.05,EEG,EEG.BadChans.InterpChans);
+
+            % Average referencing
+            EEG = average_ref(EEG);
             
             % Visual check before/after interpolation
             if strcmpi(Automaticity,'Yes')==1
@@ -1080,6 +1007,21 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 Fig=msgbox('THE CODE WILL CONTINUE ONCE YOU PRESS OK','WAIT','warn'); 
                 uiwait(Fig);
                 close gcf
+            end
+            
+%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
+%             EXPORTING PREPROCESSED DATASET 4
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Finding current subject export name
+            Temp = strsplit(CurrentFile.Path{:},'\');
+            SubjName = [Temp{end} '_'];
+
+            % Save DATASET 4 - ClEANED/CHANNELED (MANDATORY)
+            if strcmpi(ExpClean,'Yes')
+                [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
+                    sprintf(Dataset_interp, SubjName, WhichCond),...
+                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_interp, SubjName, WhichCond)]); 
             end
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1147,8 +1089,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
         Pos = find(Subjectslist == ParticipantNumber);
 
         % Retrieving current subject information 
-        % WILL NOT WORK WITH 2 BETWEEN-SUBJ FACTORS !! 
-        % IT SHOULD DEPEND ON THE NUMBER OF DIFFERENT FOLDER NAMES !
         FolderTemplate = regexp(SplitFileTemp{end},'\D*','Match');
         
         if length(FilesPath)>1
@@ -1178,14 +1118,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             Dir_load = backslash(CurrentFile.Path{:});
             
             % Finding current subject export name
-%             CurrentSession = CurrentFile.FileList{h};
-%             CurrentSession = strsplit(CurrentSession,'.');
-%             SubjName = strtok(CurrentSession{1},FileNames);
-%             % If there is no file specific name
-%             if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFile.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-%             end
+            Temp = strsplit(CurrentFile.Path{:},'\');
+            SubjName = [Temp{end} '_'];
                   
             % If save path different than CurrentPWD
             if ~isempty(SavePath)
@@ -1201,7 +1135,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     'filepath',Dir_save);
             else
                 % IF no ICA: Dataset_filtered_cleaned
-                EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned,SubjName,WhichCond) '.set'],...
+                EEG = pop_loadset('filename',[sprintf(Dataset_interp,SubjName,WhichCond) '.set'],...
                     'filepath',Dir_save);
             end
             
@@ -1262,8 +1196,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 end
 
                 while Restart<1
-
-
                     % Visualize the results
                     pop_viewprops( EEG, 0, 1:size(EEG.icaact,1), {'freqrange', [1 60]}, {}, 1, 'ICLabel' )
 
@@ -1281,8 +1213,6 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     CompsToRej = [];
                     
                     % Select components to reject
-                    % PROBLEM HERE IF YOU DO NOT MODIFY THE SUGGESTION! THE
-                    % UITABLE DOESN'T RECORD THE RESPONSES !!! 
                     Screensize = get( groot, 'Screensize' );
                     f = figure('Position', [Screensize(3)/2-200 Screensize(4)/2-200 400 500]);
                     p=uitable('Parent', f,'Data',to_display,'ColumnEdit',[false true],'ColumnName',...
@@ -1397,39 +1327,17 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 end
             end
             
-%% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%             EXPORTING PREPROCESSED DATASET 4
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%             % Finding current subject export name
-%             CurrentSession = CurrentFile.FileList{h};
-%             CurrentSession = strsplit(CurrentSession,'.');
-%             SubjName = strtok(CurrentSession{1},FileNames);
-%             % If there is no file specific name
-%             if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFile.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-%             end
-
-            % Save DATASET 4 - ClEANED/CHANNELED
-            if strcmpi(ExpClean,'Yes')
-                [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                    sprintf(Dataset_interp, SubjName, WhichCond),...
-                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_interp, SubjName, WhichCond)]); 
-            end
-            
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                         EXCEL FILES EXPORT 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%   
     
             % Waitbar updating 
             WaitBarApp.Title = '1. PREPROCESSING: Excel templates';
-    %-------------------------------------------------------------------------%
-            % INTERPOLATED CHANNELS 
-    %-------------------------------------------------------------------------%        
+%-------------------------------------------------------------------------%
+                        % INTERPOLATED CHANNELS 
+%-------------------------------------------------------------------------%        
             % Stores interp channels and in text file in each participant's
             % folder
-
             % List of interpolated channels
             if ~isempty(EEG.BadChans.InterpChans)
                 if size(EEG.BadChans.InterpChans,1) == 1
@@ -1492,7 +1400,6 @@ else
     ErrorArtifacts = [];
 end
 
-
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                       FREQUENCY BANDS ANALYSIS
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1510,7 +1417,8 @@ end
 if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
         % Finally, here we perform the power spectra analysis on specific
         % frequency bands. At the same time, topoplots are exported in
-        % designed folder. 
+        % specified folder. 
+        
     for g=1:length(Subjectslist)
 
         % Current Subject
@@ -1520,7 +1428,6 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
         Pos = find(Subjectslist == ParticipantNumber);
 
         % Retrieving current subject information 
-        % WILL NOT WORK WITH 2 BETWEEN-SUBJ FACTORS !! 
         FolderTemplate = regexp(SplitFileTemp{end},'\D*','Match');
         if length(FilesPath)>1
             CurrentFile = Participant_load.(Conditions_OrderCell{Pos,end}). ...  
@@ -1533,9 +1440,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
         for h=1:length(CurrentFile.FileList)    
 
             % Restart EEGLAB
-            eeglab
-            % Close it automatically (too many figures)
-            close gcf
+            eeglab; close gcf
 
             %-------------------------------------------------------------%    
             % Loading directory and templates
@@ -1548,14 +1453,8 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             Dir_load = backslash(CurrentFile.Path{:});
             
             % Finding current subject export name
-%             CurrentSession = CurrentFile.FileList{h};
-%             CurrentSession = strsplit(CurrentSession,'.');
-%             SubjName = strtok(CurrentSession{1},FileNames);
-%             % If there is no file specific name
-%             if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFile.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-%             end
+            Temp = strsplit(CurrentFile.Path{:},'\');
+            SubjName = [Temp{end} '_'];
             
             % If save path different than CurrentPWD
             if ~isempty(SavePath)
@@ -1605,12 +1504,13 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                 FreqRes = 1; 
             end
             
-            % Computing PSD for all channels (= GPS)
+            % Computing PSD for all channels 
             figure;[SpectOutputs,FreqsSpec]=pop_spectopo(EEG, 1, [], 'EEG','percent', ...
             100, 'freq', FreqsToPlot,'freqfac',FreqRes, 'freqrange',...
             [min(FreqRanges(1,1)) max(FreqRanges(end,2))],'electrodes','on'); 
         
             % Removing the first column of data (0 Freq = DC offset)
+            % see: https://github.com/sccn/eeglab/issues/101
             SpectOutputs = SpectOutputs(:,2:end);
             FreqsSpec = FreqsSpec(2:end);
 
@@ -1676,27 +1576,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 
             %---------------------------% AREA LEVEL %------------------------%
                     % Spectra max amplitude measurement
-%                     for m=1:size(FreqNames,1)
                     SpectOutputsStruc.Data.(FreqNames{m})=mean(SpectOutputs(:,[LowIdx(m) HighIdx(m)]),2); 
-                        % Maximum amplitude for all freq ranges peak
-    %                     SpectOutputsStruc.MaxAmp.(FreqNames{m})=...
-    %                         max(SpectOutputsStruc.Data(:).(FreqNames{m})); 
-%                     end
-
-                    % Creating a structure from the initial AreasList matrix
-                   %  FieldsAreas=fieldnames(NewAreasList);
-    %                 AllElectrodes = [];
-    %                 for t=1:length(FieldsAreas)
-    %                     AllElectrodes = [AllElectrodes NewAreasList.(FieldsAreas{t})];
-    %                 end
 
                     % Finding the electrodes-cluster with max/min amplitude
-%                     for m=1:size(FreqNames,1)
                     for f=1:length(FieldsAreas)
-                        % [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(AllElectrodes(:,f)));
                         [MeanClust(m,f)] = mean(SpectOutputsStruc.Data.(FreqNames{m})(NewAreasList.(FieldsAreas{f})));
                     end
-%                     end
             
                 
         %----------------------% AMPLITUDE TABLES %-----------------------%            
@@ -1714,15 +1599,13 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                     MinAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
                         lower([Conditions_Names{WhichCond} '_MinClust']));
 
-                % Store values in corresponding tables
-                % for m=1:size(FreqRanges,1)
-                    
+                    % Store values in corresponding tables
                     % Finding corresponding electrode-cluster area
                     [MaxClust,FindMax] = max(MeanClust(m,:));
                     [MinClust,FindMin] = min(MeanClust(m,:));
                     TempMaxClustName = FieldsAreas(FindMax);
                     TempMinClustName = FieldsAreas(FindMin);
-       
+
                     % Temp variables 
                     TempCell=table2cell(AreaAmpTable.(FreqNames{m}));
                     TempHeader=AreaAmpTable.(FreqNames{m}).Properties.VariableNames;
@@ -1742,7 +1625,6 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                     % Exporting the tables in predefined excel files
                     writetable(AreaAmpTable.(FreqNames{m}),...
                         [ExcelDirectory 'AreaAmplitude' FreqNames{m} '.xlsx']);
-                % end  
                 end
             end
         end
@@ -1760,6 +1642,7 @@ save([SavePath '\Parameters\' Date_Start '\MAINWorkspace.mat'],...
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                  RUNNING THE STUDY (GROUP ANALYSES)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 if strcmpi(Steps,'Both') || strcmpi(Steps,'Group analyses') 
     % Epitome of UI
     WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
@@ -1769,6 +1652,7 @@ if strcmpi(Steps,'Both') || strcmpi(Steps,'Group analyses')
     else
         GROUPSTUDY(CurrentPWD,Date_Start,WaitBarApp)
     end
+    
 else
     % Running the log
     if sum(~SavePath)<1

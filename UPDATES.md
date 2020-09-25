@@ -1,4 +1,4 @@
-﻿20.07.2020
+﻿25.09.2020
 
 • v0.62
 
@@ -18,14 +18,17 @@ Temporarilly removed MPT toolbox due to incomptability issues with EEGLAB v.2020
 https://github.com/sccn/eeglab/issues/198
 https://github.com/sccn/eeglab/issues/184
 
+• v0.62.2
+Cleaned the code in MAIN.m
+Corrected a major bug in MAIN.m where the wrong datasets (i.e. the ones where rejected channels were not interpolated and placed back in the EEG.data field) were imported for ICA cleaning and Power Spectrum Computation
+Changed the mandatory export datasets to be the "Artifacts Rejected" in the EEGParamGUI.mlapp GUI instead of "Filtered" (see error below).
+Updated plugins: DIPFIT v.3.4 & FieldTrip-lite v.20200922
+
 • TO DO
-Implement Spectrum Interpolation instead of CleanLine : https://github.com/fieldtrip/fieldtrip/blob/master/preproc/ft_preproc_dftfilter.m (need to test it!; https://www.sciencedirect.com/science/article/abs/pii/S1053811919300266?via%3Dihub)
+Test Spectrum Interpolation instead of CleanLine : https://github.com/fieldtrip/fieldtrip/blob/master/preproc/ft_preproc_dftfilter.m (need to test it!; https://www.sciencedirect.com/science/article/abs/pii/S1053811919300266?via%3Dihub)
 Check the source neighbouring matrix
 Include in GUI possibility to adjust the IC rejection criteria for MPT
 Finish the MPT source localisation script
-Implement a try-catch for excel template generation! The software crashes if the name of sheets is changed and files already exist
-
-
 
 • Problems to solve in the future:
 
