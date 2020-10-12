@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.62.2
+% Version 0.63.0
 % Developped by <Corentin Wicht>
-% 25.09.2020
+% 05.10.2020
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -67,7 +67,8 @@ for k=1:length(F)
     end
 end
 
-if ispc && ~Result && strcmpi(ICA,'yes')
+if strcmpi(ICA,'yes'); AnswerICA = str2double(AnswerICA); end
+if ispc && ~Result && strcmpi(ICA,'yes') && AnswerICA == 1
     
     % Temporary folder to delete
     mkdir([CurrentPWD '\Mpich2_1.4']);
@@ -151,9 +152,9 @@ else
         AnswerASR{2} = '-1';
     end
 end
-if strcmpi(ICA,'Yes') && isempty(AnswerICA)
-   AnswerICA = {'2000'}; % Default 
-end
+% if strcmpi(ICA,'Yes') && isempty(AnswerICA)
+%    AnswerICA = {'2000'}; % Default 
+% end
 if str2double(AnswerBLINKER{1}) == 1
     AnswerBLINKER = 'reject';
 else
@@ -236,12 +237,12 @@ else
 end
 
 % Datasets templates (Adding the subject number before)
-Dataset_filtCleaned = ['%s' FileNames '%d_filtered'];
-Dataset_interp = ['%s' FileNames  '%d_filtered_cleaned'];
-Dataset_filtCleaned_ICAed = ['%s' FileNames '%d_filtered_cleaned_ICAed'];
-Dataset_filtCleaned_ICAedRejected = ['%s' FileNames '%d_filtered_cleaned_ICAedRejected'];
-PreprocessedEEG=['%s' FileNames '%d_Preprocessed.bdf'];
-PSDEEG=['%s' FileNames '%d_PowerSpectDensity.mat'];
+Dataset_filtCleaned = '%s%s_filtered';
+Dataset_interp = '%s%s_filtered_cleaned';
+Dataset_filtCleaned_ICAed = '%s%s_filtered_cleaned_ICAed';
+Dataset_filtCleaned_ICAedRejected = '%s%s_filtered_cleaned_ICAedRejected';
+PreprocessedEEG='%s%s_Preprocessed.bdf';
+PSDEEG='%s%s_PowerSpectDensity.mat';
 
 %% SUBJECTS TEMPLATES
 Conditions_Order=readtable([DirectoryCond FileCond]);
@@ -302,15 +303,16 @@ end
 % Participants group directory
 for k=1:length(FilesPath)
     
-    % Path of the folders containing the datasets for each group
-    FileList = dir([FilesPath{k} '\**/*' lower(Extension)]); 
-    
-    % Removing unnecessary files:
-    % 1) Removing Preprocessed.bdf files if preprocessing selected
-    FileList = FileList(~contains({FileList.name},'Preprocessed'));
-    
-    % 2) If loading .set, remove unused file versions
+    % Loading .set files
     if strcmpi(Extension,'.set')
+        
+        % Path of the folders containing the datasets for each group
+        SplitTemp =  strsplit(FilesPath{k},'\');
+        ImportFoldPath = [SavePath '\' SplitTemp{end}];
+        FileList = dir([ImportFoldPath '\**/*' lower(Extension)]); 
+        
+        % Removing unnecessary files:
+        % 1) If loading .set, remove unused file versions
         % non-ICA files
         IdxNonICA = contains({FileList.name}','filtered_cleaned');
         
@@ -320,6 +322,14 @@ for k=1:length(FilesPath)
         % Grouping indexes and removing unused files
         IdxRem = or(IdxNonICA,IdxICA);
         FileList = FileList(IdxRem);
+        
+    % Loading .bdf files
+    else
+        % Path of the folders containing the datasets for each group
+        FileList = dir([FilesPath{k} '\**/*' lower(Extension)]); 
+        
+        % 2) Removing Preprocessed.bdf files from import
+        FileList = FileList(~contains({FileList.name},'Preprocessed'));
     end
     
     % If save path different than CurrentPWD
@@ -338,8 +348,13 @@ for k=1:length(FilesPath)
     FileList = FileList(contains({FileList.name},FileNames));
     
     % List of all folders in the group
-    GroupFoldersTemp = {FileList(contains({FileList.folder},FilesPath{k})).folder};
-    UniqueFoldersTemp = sort_nat(unique(GroupFoldersTemp));
+    if strcmpi(Extension,'.bdf')
+        GroupFoldersTemp = {FileList(contains({FileList.folder},FilesPath{k})).folder};
+        UniqueFoldersTemp = sort_nat(unique(GroupFoldersTemp));
+    else
+        GroupFoldersTemp = {FileList(contains({FileList.folder},ImportFoldPath)).folder};
+        UniqueFoldersTemp = sort_nat(unique(GroupFoldersTemp));
+    end
     
     for j=1:length(UniqueFoldersTemp)
         SplitFileTemp = strsplit(UniqueFoldersTemp{j},'\');
@@ -367,7 +382,12 @@ for k=1:length(FilesPath)
 
             % For each condition, see if we find it in the name or subpath
             if length(Conditions) > 1
-                  Condname_i = contains(upper(Conditions_Labels),upper(CurrentFileSplit{1}));
+                Stop = 0; Num = 1;
+                while Stop==0 
+                    TempFile = strsplit(CurrentFileSplit{1},'_');
+                    Condname_i = contains(upper(Conditions_Labels),upper(TempFile{Num}));
+                    if any(Condname_i) || Num >= length(TempFile); Stop = 1;else; Num = Num + 1;end
+                end
                 
                 % In case of multiple positives, take the lengthier condition name
                 if sum(Condname_i) > 1
@@ -485,6 +505,11 @@ WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
     'Message','','Cancelable','on');
 File = 0;
 
+% Initialize EEGLAB
+eeglab nogui % running without GUI
+% [ALLEEG EEG CURRENTSET ALLCOM] = eeglab; close gcf
+pop_editoptions('option_single', 0); % set double-precision parameter
+
 % If the extension is .set, only the analyses are performed
 if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
     
@@ -514,8 +539,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             %-----------------------------------------------------------------% 
 
             % Finding current condition number
-            WhichCond = find(contains(lower(Conditions_Names),...
-                  lower(CurrentFile.CondAssign{h})));
+            CondLabel = CurrentFile.CondAssign{h};
+            WhichCond = find(contains(lower(Conditions_Names),lower(CondLabel)));
 
             % Selecting appropriate groups folder     
             Dir_load = backslash(CurrentFile.Path{:});
@@ -533,7 +558,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             WaitBarApp.Value = File/FilesToProcess;
             WaitBarApp.Title = '1. PREPROCESSING: Loading data';
             WaitBarApp.Message = sprintf('Sbj %d/%d : %s',g,...
-                length(Subjectslist),CurrentFile.CondAssign{WhichCond});
+                length(Subjectslist),CondLabel);
 
             % Check for Cancel button press
             if WaitBarApp.CancelRequested
@@ -541,12 +566,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             end
             
             %% IMPORT
-            % Creating first dataset
-            [ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
-            close gcf
-
-            % set double-precision parameter
-            pop_editoptions('option_single', 0);
+            
+            % Initialize an empty EEG dataset 
+            EEG = eeg_emptyset(); ALLEEG = []; CURRENTSET = 0;
 
             % Import the .bdf file
             % SHOULD NEVER SPECIFY A REF CHAN FOR BIOSEMI (since BioSemi uses CMS-DRL which cannot be imported)
@@ -562,10 +584,14 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     newline Channel_load])
             end
 
-            %% RESTRICTING DATA LENGTH (optional)
-            if End~=0
-                EEG = pop_select( EEG,'time',[Beginning ...
-                    End]);  
+            %% RESTRICTING DATA LENGTH 
+            
+            if ~isempty(Beginning) && isempty(End)
+                EEG = pop_select(EEG,'time',[Beginning EEG.xmax]);  
+            elseif isempty(Beginning) && ~isempty(End)
+                EEG = pop_select(EEG,'time',[EEG.xmin End]);  
+            elseif ~isempty(Beginning) && ~isempty(End)
+                EEG = pop_select(EEG,'time',[Beginning End]);  
             end
             
             %% Changing events structure (double to strings)
@@ -603,23 +629,22 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % CLEANLINE
             % CleanLine sinusoidal stationary noise removal
             % (http://www.antillipsi.net/research/software#TOC-Cleanline)
-            PromptCleanLine=cellfun(@(x) str2num(x),AnswerCleanLine,'UniformOutput',false);
-            EEG = pop_cleanline(EEG,'bandwidth',PromptCleanLine{3},'chanlist',1:EEG.nbchan ,...
-                'computepower',0,'linefreqs',PromptCleanLine{1},'normSpectrum',0,'p',PromptCleanLine{2},...
-                'pad',PromptCleanLine{7},'plotfigures',0,'scanforlines',1,'sigtype','Channels',...
-                'tau',PromptCleanLine{6},'verb',1,'winsize',PromptCleanLine{5},'winstep',PromptCleanLine{4});
-            close gcf;
+            if strcmpi(CLEANLINE,'Yes') 
+                PromptCleanLine=cellfun(@(x) str2num(x),AnswerCleanLine,'UniformOutput',false);
+                EEG = pop_cleanline(EEG,'bandwidth',PromptCleanLine{3},'chanlist',1:EEG.nbchan ,...
+                    'computepower',0,'linefreqs',PromptCleanLine{1},'normSpectrum',0,'p',PromptCleanLine{2},...
+                    'pad',PromptCleanLine{7},'plotfigures',0,'scanforlines',1,'sigtype','Channels',...
+                    'tau',PromptCleanLine{6},'verb',1,'winsize',PromptCleanLine{5},'winstep',PromptCleanLine{4});
+                close gcf;
+            end
                  
             % Finding current subject export name
             Temp = strsplit(CurrentFile.Path{:},'\');
             SubjName = [Temp{end} '_'];
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
-%                    INTERPOLATION/CHANNELS REJECTION
+%                    BAD CHANNELS DETECTION
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%%             
-
-            % Temporary save the original EEG (non-robust averaged)
-            OriginalEEG = EEG;
             
             % Waitbar updating 
             WaitBarApp.Title = '1. PREPROCESSING: Channels interpolation';
@@ -627,40 +652,78 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % Detection of bad channels 
             ErrorArtifacts = {};
             r = 1;
-            try
-                % Function from the PrepPipeline to perform 1) Bad Channels
-                % Detection and rejection
-                % Parameters
-                InterpChanStruct = getReferenceStructure();
-                defaults = getPrepDefaults(EEG, 'reference');
-                InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
-                defaults = getPrepDefaults(EEG, 'detrend');
-                InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
-                InterpChanStruct.rereferencedChannels = sort(InterpChanStruct.rereferencedChannels);
-                InterpChanStruct.referenceChannels = sort(InterpChanStruct.referenceChannels);
-                InterpChanStruct.evaluationChannels = sort(InterpChanStruct.evaluationChannels);
-                
-                % Bad channels identification by robust reference
-                InterpChanStruct.referenceSignalOriginal = ...
-                    nanmean(EEG.data(InterpChanStruct.referenceChannels, :), 1);
-                InterpChanStruct = robustReference(EEG, InterpChanStruct);
-                
-                % Saving the bad channels data to reintroduce them later
-                % Saving the bad channels data to reintroduce them later
-                EEG.BadChans.chanlocs = EEG.chanlocs; 
-                EEG.BadChans.nbchan = EEG.nbchan;
-                EEG.BadChans.data = EEG.data(InterpChanStruct.badChannels.all,:);
-                EEG.BadChans.InterpChans = InterpChanStruct.badChannels.all;
-                
-                % Removing the bad channels
-                EEG = pop_select(EEG,'nochannel',InterpChanStruct.badChannels.all);
-            catch
-                % Write error to the LOG
-                ErrorArtifacts{r} = [SubjName FileNames num2str(WhichCond)];
-                r = r+1;
-                break
-            end
             
+            if strcmpi(BADCHANS,'Yes')
+                
+                % Automatic detection
+                try
+                    
+                    % 1) EEGLAB METHOD
+                    if strcmpi(BADCHANSAlgo,'1')
+                        
+                        % settings from GUI
+                        if strcmpi(BADCHANSParam{1},'1'); Measure = 'kurt';
+                        elseif strcmpi(BADCHANSParam{1},'2'); Measure = 'prob';
+                        elseif strcmpi(BADCHANSParam{1},'3'); Measure = 'spec';
+                        end
+                        if strcmpi(BADCHANSParam{3},'Y'); Norm = 'on';
+                        elseif strcmpi(BADCHANSParam{3},'N'); Norm = 'off';
+                        end
+                        
+                        [~,InterpChanStruct.noisyChannels.all] = ...
+                            pop_rejchan(EEG,'elec',1:EEG.nbchan,'threshold',...
+                            'measure',Measure,str2double(BADCHANSParam{2}),'norm',Norm);
+                    
+                    % 2) PREP PIPELINE Bad Channels Detection and rejection    
+                    elseif strcmpi(BADCHANSAlgo,'2')
+                        
+                        % Parameters (populate with defaults)
+                        InterpChanStruct = getReferenceStructure();
+                        defaults = getPrepDefaults(EEG, 'reference');
+                        InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
+                        defaults = getPrepDefaults(EEG, 'detrend');
+                        InterpChanStruct = checkDefaults(struct(), InterpChanStruct, defaults);
+                        InterpChanStruct.rereferencedChannels = sort(InterpChanStruct.rereferencedChannels);
+                        InterpChanStruct.referenceChannels = sort(InterpChanStruct.referenceChannels);
+                        InterpChanStruct.evaluationChannels = sort(InterpChanStruct.evaluationChannels);
+                        
+                        % User inputs from GUI
+                        BADCHANSParam = str2double(BADCHANSParam);
+                        InterpChanStruct.robustDeviationThreshold = BADCHANSParam(1);
+                        InterpChanStruct.highFrequencyNoiseThreshold = BADCHANSParam(2);
+                        InterpChanStruct.correlationWindowSeconds = BADCHANSParam(3);
+                        InterpChanStruct.correlationThreshold = BADCHANSParam(4);
+                        InterpChanStruct.badTimeThreshold = BADCHANSParam(5);
+                        InterpChanStruct.ransacSampleSize = BADCHANSParam(6);
+                        InterpChanStruct.ransacChannelFraction = BADCHANSParam(7);
+                        InterpChanStruct.ransacCorrelationThreshold = BADCHANSParam(8);
+                        InterpChanStruct.ransacUnbrokenTime = BADCHANSParam(9);
+                        InterpChanStruct.ransacWindowSeconds = BADCHANSParam(10);
+
+                        % Bad channels identification by robust reference
+                        InterpChanStruct = findNoisyChannels(EEG, InterpChanStruct);
+                    end
+                    
+                    % Saving the bad channels data to reintroduce them later
+                    EEG.BadChans.chanlocs = EEG.chanlocs; 
+                    EEG.BadChans.nbchan = EEG.nbchan;
+                    EEG.BadChans.data = EEG.data(InterpChanStruct.noisyChannels.all,:);
+                    EEG.BadChans.InterpChans = InterpChanStruct.noisyChannels.all;
+
+                    % Removing the bad channels
+                    EEG = pop_select(EEG,'nochannel',InterpChanStruct.badChannels.all);
+                catch
+                    % Write error to the LOG
+                    ErrorArtifacts{r} = [SubjName FileNames CondLabel];
+                    r = r+1;
+                    break
+                end
+                
+                % Manual method: list of bad channels provided in GUI
+            else
+                CurrentBadChans = strsplit(BadChansList{Pos, WhichCond},',');
+                EEG = pop_select(EEG,'nochannel',CurrentBadChans);
+            end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
 %                    NON-SINUSOIDAL NOISE REMOVAL
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%n%%%%%%%%%%%%  
@@ -677,7 +740,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % Non-stationary artifacts removal
             
             % Fixing the maximum available memory enhances reproducibility
-            MaxMemory = round(hlp_memfree()/2000000,-3);
+%             MaxMemory = round(hlp_memfree()/2000000,-3);
  
             if strcmpi(ASR,'Yes') 
                 
@@ -711,8 +774,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
                 % Setting parameters
                 Params = checkBlinkerDefaults(struct(), getBlinkerDefaults(EEG));
-                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond)];
-                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond) '_blinks.mat'];
+                Params.fileName = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, CondLabel)];
+                Params.blinkerSaveFile = [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, CondLabel) '_blinks.mat'];
                 Params.showMaxDistribution = true;
                 Params.verbose = false;
                 Params.fieldList = {'leftBase','rightBase'};
@@ -969,8 +1032,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % Save DATASET 1 - FILTERED 
             if strcmpi(ExpFilt,'Yes')
                 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                    sprintf(Dataset_filtCleaned, SubjName,WhichCond)...
-                ,'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, WhichCond)]);  
+                    sprintf(Dataset_filtCleaned, SubjName,CondLabel)...
+                ,'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_filtCleaned, SubjName, CondLabel)]);  
             end
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%        
@@ -1020,8 +1083,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % Save DATASET 4 - ClEANED/CHANNELED (MANDATORY)
             if strcmpi(ExpClean,'Yes')
                 [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                    sprintf(Dataset_interp, SubjName, WhichCond),...
-                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_interp, SubjName, WhichCond)]); 
+                    sprintf(Dataset_interp, SubjName, CondLabel),...
+                'gui','off', 'savenew', [Dir_save '\\' sprintf(Dataset_interp, SubjName, CondLabel)]); 
             end
             
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1033,16 +1096,31 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % Waitbar updating 
                 WaitBarApp.Title = '1. PREPROCESSING: ICA computation';
 
-                % Running ICA decomposition with best algorithm so far (AMICA)
-                [W,S,mods] = runamica15(EEG.data,'outdir',...
-                    [Dir_load '\\AmicaResults\\' sprintf('Session%d',WhichCond)],...
-                    'max_iter',str2double(AnswerICA{:})); 
+                % Running ICA decomposition with ...
+                % 1) AMICA (best one so far)
+                if AnswerICA{1} == 1
+                    [W,S,mods] = runamica15(EEG.data,'outdir',...
+                        [Dir_load '\\AmicaResults\\' CondLabel],...
+                        'max_iter',AnswerICA{2}); 
 
-                % Storing amica results in EEG structure
-                EEG.icaweights = W;
-                EEG.icasphere = S(1:size(W,1),:);
-                EEG.icawinv = mods.A(:,:,1);
-                EEG.mods = mods;
+                    % Storing amica results in EEG structure
+                    EEG.icaweights = W;
+                    EEG.icasphere = S(1:size(W,1),:);
+                    EEG.icawinv = mods.A(:,:,1);
+                    EEG.mods = mods;
+                
+                % 2) RUNICA (EEGLAB default)
+                elseif AnswerICA == 2
+                    EEG = pop_runica(EEG, 'icatype', 'runica');
+                    
+                % 3) PICARD (fastest one so far)    
+                elseif AnswerICA == 3
+                    if AnswerICA{3} == 1
+                        EEG  = pop_runica(EEG, 'icatype', 'picard', 'mode', 'ortho');
+                    elseif AnswerICA{3} == 2
+                        EEG  = pop_runica(EEG, 'icatype', 'picard', 'mode', 'standard');
+                    end
+                end
 
                 % DIPOLE FITTING OF ICA DERIVED COMPONENTS (SOURCE LOCALIZATION)
                 % Tutorials : 
@@ -1058,14 +1136,14 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 for k=length(findobj('type','figure'))-2:length(findobj('type','figure'))
                     SaveFigures(figure(k),[TopoDipFitDirectory...
                         sprintf(ExportString{k},Subjectslist(g),...
-                        Conditions_OrderCell{Pos,WhichCond})],Color{k},ExportFormat{k});
+                        CondLabel)],Color{k},ExportFormat{k});
                 end
 
                 % Save DATASET 2 - ICA COMPUTED
                 if strcmpi(ExpICAED,'Yes')
                     [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                        sprintf(Dataset_filtCleaned_ICAed, SubjName, WhichCond),...
-                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAed, SubjName, WhichCond)]);  
+                        sprintf(Dataset_filtCleaned_ICAed, SubjName, CondLabel),...
+                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAed, SubjName, CondLabel)]);  
                 end
             end
         end
@@ -1101,18 +1179,15 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
         for h=1:length(CurrentFile.FileList)
 
-            % Restart EEGLAB
-            eeglab
-
-            % Closing EEGLAB GUI
-            close gcf
+            % Initialize an empty EEG dataset 
+            EEG = eeg_emptyset(); ALLEEG = []; CURRENTSET = 0;
 
             %-----------------------------------------------------------------%    
             % Loading directory and templates
             %-----------------------------------------------------------------% 
             % Finding current condition number
-            WhichCond = find(contains(lower(Conditions_Names),...
-                  lower(CurrentFile.CondAssign{h})));
+            CondLabel = CurrentFile.CondAssign{h};
+            WhichCond = find(contains(lower(Conditions_Names),lower(CondLabel)));
 
             % Selecting appropriate groups folder     
             Dir_load = backslash(CurrentFile.Path{:});
@@ -1131,11 +1206,11 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             % RE-IMPORT LAST DATASET 
             if strcmpi(ICA,'Yes')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAed
-                EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned_ICAed,SubjName,WhichCond) '.set'],...
+                EEG = pop_loadset('filename',[sprintf(Dataset_filtCleaned_ICAed,SubjName,CondLabel) '.set'],...
                     'filepath',Dir_save);
             else
                 % IF no ICA: Dataset_filtered_cleaned
-                EEG = pop_loadset('filename',[sprintf(Dataset_interp,SubjName,WhichCond) '.set'],...
+                EEG = pop_loadset('filename',[sprintf(Dataset_interp,SubjName,CondLabel) '.set'],...
                     'filepath',Dir_save);
             end
             
@@ -1144,7 +1219,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             WaitBarApp.Value = File/FilesToProcess;
             WaitBarApp.Title = '1. PREPROCESSING: ICA rejection';
             WaitBarApp.Message = sprintf('Sbj %d/%d : %s',g,...
-                length(Subjectslist),CurrentFile.CondAssign{WhichCond});
+                length(Subjectslist),CondLabel);
             
             % Check for Cancel button press
             if WaitBarApp.CancelRequested
@@ -1279,8 +1354,8 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 % Save DATASET 3 - PRUNED WITH ICA
                 if strcmpi(ExpICARej,'Yes')
                     [ALLEEG EEG CURRENTSET] = pop_newset(ALLEEG, EEG, CURRENTSET,'setname',...
-                        sprintf(Dataset_filtCleaned_ICAedRejected, SubjName, WhichCond),...
-                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,WhichCond)]);
+                        sprintf(Dataset_filtCleaned_ICAedRejected, SubjName, CondLabel),...
+                    'gui','off', 'savenew',[Dir_save '\\' sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,CondLabel)]);
                 end
             end
 
@@ -1317,11 +1392,11 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 rmpath(x);
                 addpath(x,'-begin');
                 if ~isempty(EXPORTEEG.event)
-                    writeeeg([Dir_save '\\' sprintf(PreprocessedEEG,SubjName,WhichCond)],EXPORTEEG.data,...
+                    writeeeg([Dir_save '\\' sprintf(PreprocessedEEG,SubjName,CondLabel)],EXPORTEEG.data,...
                         EXPORTEEG.srate,'TYPE','BDF','Label',{EXPORTEEG.chanlocs.labels},...
                         'Patient.id',strrep(SubjName,'_',''),'EVENT',EXPORTEEG.event);
                 else
-                    writeeeg([Dir_save '\\' sprintf(PreprocessedEEG,SubjName,WhichCond)],EXPORTEEG.data,...
+                    writeeeg([Dir_save '\\' sprintf(PreprocessedEEG,SubjName,CondLabel)],EXPORTEEG.data,...
                     	EXPORTEEG.srate,'TYPE','BDF','Label',{EXPORTEEG.chanlocs.labels},...
                         'Patient.id',strrep(SubjName,'_',''));
                 end
@@ -1360,7 +1435,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
             % Exporting the list of rejected components in specific excel files
             if ~isempty(InterpChans)
-                xlswrite([ExcelDirectory 'InterpChannels' Conditions_Names{WhichCond} '.xlsx'],...
+                xlswrite([ExcelDirectory 'InterpChannels' CondLabel '.xlsx'],...
                     InterpChans,sprintf('B%d:%s%d',Pos+1,...
                     XlsCompCol{1},Pos+1));
             end
@@ -1382,7 +1457,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
 
                 % Exporting the list of rejected components in specific excel files
                 if ~isempty(CompsToRej)
-                    xlswrite([ExcelDirectory 'RejectedComponents' Conditions_Names{WhichCond} '.xlsx'],... % Conditions_OrderCell{Pos,WhichCond}
+                    xlswrite([ExcelDirectory 'RejectedComponents' CondLabel '.xlsx'],... % Conditions_OrderCell{Pos,WhichCond}
                         ICALabels,sprintf('B%d:%s%d',Pos+1,...
                         XlsCompCol{1},Pos+1));
                 end
@@ -1408,6 +1483,8 @@ end
 WaitBarApp = uiprogressdlg(App.MainGUIUIFigure,'Title','Progress Bar',...
     'Message','','Cancelable','on');
 File = 0;
+ALLEEG = [];
+CURRENTSET = 0;
 
 % If not interested in analyses
 if ~exist('Analysis','var')
@@ -1439,15 +1516,15 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 
         for h=1:length(CurrentFile.FileList)    
 
-            % Restart EEGLAB
-            eeglab; close gcf
+            % Initialize an empty EEG dataset 
+            EEG = eeg_emptyset(); ALLEEG = []; CURRENTSET = 0;
 
             %-------------------------------------------------------------%    
             % Loading directory and templates
             %-------------------------------------------------------------% 
             % Finding current condition number
-            WhichCond = find(contains(lower(Conditions_Names),...
-                  lower(CurrentFile.CondAssign{h})));
+            CondLabel = CurrentFile.CondAssign{h};
+            WhichCond = find(contains(lower(Conditions_Names),lower(CondLabel)));
 
             % Selecting appropriate groups folder     
             Dir_load = backslash(CurrentFile.Path{:});
@@ -1467,12 +1544,12 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             if strcmpi(ICA,'Yes')
                 % IF ICA computed : Dataset_filtered_cleaned_ICAedRejected
                 EEG = pop_loadset('filename',...
-                    [sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,WhichCond) '.set'],...
+                    [sprintf(Dataset_filtCleaned_ICAedRejected,SubjName,CondLabel) '.set'],...
                     'filepath',Dir_save);
             else
                 % IF no ICA: Dataset_filtered_cleaned
                 EEG = pop_loadset('filename',...
-                    [sprintf(Dataset_interp,SubjName,WhichCond) '.set'],...
+                    [sprintf(Dataset_interp,SubjName,CondLabel) '.set'],...
                     'filepath',Dir_save);
             end
             
@@ -1481,7 +1558,7 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
             WaitBarApp.Value = File/FilesToProcess;
             WaitBarApp.Title = '2. ANALYSES: Power spectral density (PSD)';
             WaitBarApp.Message = sprintf('Sbj %d/%d : %s',g,...
-                length(Subjectslist),CurrentFile.CondAssign{WhichCond});
+                length(Subjectslist),CondLabel);
             
             % Check for Cancel button press
             if WaitBarApp.CancelRequested
@@ -1516,10 +1593,10 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 
             % Saving topoplots
             SaveFigures(gcf,[TopoplotsDirectory sprintf('PowerSpectrum%d_%s',ParticipantNumber,...
-                Conditions_OrderCell{Pos,WhichCond})],'w','bmp');
+                CondLabel)],'w','bmp');
             
             % Saving matrix with PSD for each subject
-            save([Dir_save '\\' sprintf(PSDEEG,SubjName,WhichCond)],'SpectOutputs');
+            save([Dir_save '\\' sprintf(PSDEEG,SubjName,CondLabel)],'SpectOutputs');
 
             %-------------------------------------------------------------%
             % FREQUENCIES EXPORT
@@ -1540,18 +1617,18 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
 
                 % Save to specific STATS folder 
                 DirectoryFreq=[StatsDirectory FreqNames{m} '\',...
-                sprintf(Frequency_export{m}, Subjectslist(g)) Conditions_OrderCell{Pos,WhichCond} '.ep']; 
+                sprintf(Frequency_export{m}, Subjectslist(g)) CondLabel '.ep']; 
                 save(DirectoryFreq, 'FreqTempEP', '-ascii');
                 
                 for r=1:length(Conditions_Names)
                     % Fill in the GPS Matrix
-                    GPS.(FreqNames{m}).(Conditions_Names{WhichCond})(Pos,2:end)=array2table(FreqTempEP);
+                    GPS.(FreqNames{m}).(CondLabel)(Pos,2:end)=array2table(FreqTempEP);
                     % Rename the channels according to defined standards
-                    GPS.(FreqNames{m}).(Conditions_Names{WhichCond}).Properties.VariableNames=[{'Participants'} {EEG.chanlocs.labels}];
+                    GPS.(FreqNames{m}).(CondLabel).Properties.VariableNames=[{'Participants'} {EEG.chanlocs.labels}];
                     % Export to GPS excel file
-                    writetable(GPS.(FreqNames{m}).(Conditions_Names{WhichCond}),...
+                    writetable(GPS.(FreqNames{m}).(CondLabel),...
                         [ExcelDirectory 'GPS_' FreqNames{m} '.xlsx'],...
-                        'Sheet',[FreqNames{m} '_' lower(Conditions_Names{WhichCond})]);
+                        'Sheet',[FreqNames{m} '_' lower(CondLabel)]);
                 end
            
             
@@ -1591,13 +1668,13 @@ if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
                     % Find positions of columns to store values according to
                     % conditions
                     Max = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                        lower([Conditions_Names{WhichCond} '_Max']));
+                        lower([CondLabel '_Max']));
                     Min =ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                        lower([Conditions_Names{WhichCond} '_Min']));
+                        lower([CondLabel '_Min']));
                     MaxAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                        lower([Conditions_Names{WhichCond} '_MaxClust']));
+                        lower([CondLabel '_MaxClust']));
                     MinAmpClust = ismember(lower(AreaAmpTable.(FreqNames{m}).Properties.VariableNames),...
-                        lower([Conditions_Names{WhichCond} '_MinClust']));
+                        lower([CondLabel '_MinClust']));
 
                     % Store values in corresponding tables
                     % Finding corresponding electrode-cluster area
