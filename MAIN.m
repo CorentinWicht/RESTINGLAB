@@ -672,7 +672,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                         
                         [~,InterpChanStruct.noisyChannels.all] = ...
                             pop_rejchan(EEG,'elec',1:EEG.nbchan,'threshold',...
-                            'measure',Measure,str2double(BADCHANSParam{2}),'norm',Norm);
+                            str2double(BADCHANSParam{2}),'measure',Measure,'norm',Norm);
                     
                     % 2) PREP PIPELINE Bad Channels Detection and rejection    
                     elseif strcmpi(BADCHANSAlgo,'2')
@@ -745,8 +745,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             if strcmpi(ASR,'Yes') 
                 
                 % ASR 
+                % https://sccn.ucsd.edu/wiki/Artifact_Subspace_Reconstruction_(ASR)#The_option_.27availableRAM_GB.27_is_available_to_fix_the_length_of_final_output
                 EEG = clean_rawdata(EEG, -1, -1, -1, -1, str2double(AnswerASR{1}),...
-                    str2double(AnswerASR{2}));          
+                    str2double(AnswerASR{2}),'availableRAM_GB',floor(hlp_memfree/1000000000));          
 
                 % Removing the events that were created by ASR 
                 EEG = RemovEvents(EEG,'EventTypes',{'X','boundary'});
