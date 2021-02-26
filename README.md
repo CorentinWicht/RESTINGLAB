@@ -340,7 +340,7 @@ Gabard-Durnam, L.J., Mendez Leal, A.S., Wilkinson, C.L. & Levin, A.R. (2018).
 Frontiers in Neuroscience, 12, 1-24.](https://doi.org/10.3389/fnins.2018.00097)
 
 
-**The choice of the EEGLAB toolboxes included in the pipeline where made according to:**
+**The choice of the EEGLAB toolboxes included in the pipeline were made according to:**
 1) ```BLINKER```: \
 <a id="1">[3]</a> 
 Kleifges, K., Bidgely-Shamlo, N., Kerick, S.E. & Robbins, K.A. (2017). 
