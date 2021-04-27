@@ -24,13 +24,10 @@ Corrected a major bug in MAIN.m where the wrong datasets (i.e. the ones where re
 Changed the mandatory export datasets to be the "Artifacts Rejected" in the EEGParamGUI.mlapp GUI instead of "Filtered" (see error below).
 Updated plugins: DIPFIT v.3.4 & FieldTrip-lite v.20200922
 
+• v0.63
+Updated EEGLAB and plugins to latest versions
+Replaced MPT toolbox (deprecated) by EEGLAB updated versions (mp_clustering & NIMA)
+Fixed an issue related to participant_load variable and use of "contains" when the "pattern" is longer than the "str" argument.
+
 • TO DO
-Test Spectrum Interpolation instead of CleanLine : https://github.com/fieldtrip/fieldtrip/blob/master/preproc/ft_preproc_dftfilter.m (need to test it!; https://www.sciencedirect.com/science/article/abs/pii/S1053811919300266?via%3Dihub)
-Check the source neighbouring matrix
-Include in GUI possibility to adjust the IC rejection criteria for MPT
-Finish the MPT source localisation script
-
-• Problems to solve in the future:
-
-Find a way to implement ASR-interpolation for BLINKER
-Find a way to run the sleep detection algorithm
+Finish the MPT source localisation script by EEGLAB new implementation 

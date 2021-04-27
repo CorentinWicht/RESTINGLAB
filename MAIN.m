@@ -1,8 +1,8 @@
 %%------------------------------RESTINGLAB-------------------------------%%
 
-% Version 0.62.2
+% Version 0.63
 % Developped by <Corentin Wicht>
-% 25.09.2020
+% 19.04.2021
 % Author: Corentin Wicht (corentin.wicht@unifr.ch)
 % Contributor: Christian Mancini (christian.mancini@unifr.ch)
 %-------------------------------------------------------------------------%
@@ -30,8 +30,15 @@ time_start = datestr(now);
 % Hide warning messages
 warning off MATLAB:subscripting:noSubscriptsSpecified
 
+% Find folder in Functions containing "eeglab" (may change name if update)
+Files = dir([CurrentPWD '\Functions\']);
+dirFlags = [Files.isdir];
+OnlyFolders = Files(dirFlags);
+Idx = contains(lower({OnlyFolders.name}),'eeglab');
+EEGLABFolder = [OnlyFolders(Idx).folder '\' OnlyFolders(Idx).name];
+
 % Adding path to dependencies
-addpath([CurrentPWD '\Functions\eeglab-develop']);
+addpath(EEGLABFolder);
 addpath([CurrentPWD '\Functions\']);
 addpath(genpath([CurrentPWD '\Functions\Dependencies']));
 addpath([CurrentPWD '\Functions\EEGInterp']); 
@@ -367,7 +374,9 @@ for k=1:length(FilesPath)
 
             % For each condition, see if we find it in the name or subpath
             if length(Conditions) > 1
-                  Condname_i = contains(upper(Conditions_Labels),upper(CurrentFileSplit{1}));
+                for r=1:length(Condname_i)
+                    Condname_i(r) = contains(CurrentFileSplit{1},Conditions_Labels{r},'IgnoreCase',true);
+                end
                 
                 % In case of multiple positives, take the lengthier condition name
                 if sum(Condname_i) > 1
@@ -375,7 +384,9 @@ for k=1:length(FilesPath)
                 elseif sum(Condname_i) == 1 
                     CondPos = find(Condname_i == 1);
                 else % Case where the header and the data in columns are inverted
-                    Condname_i = contains(upper(Conditions_OrderCell(TempFilePos,:)),upper(CurrentFileSplit{1}));
+                    for s=1:length(Condname_i)
+                        Condname_i(l) = contains(CurrentFileSplit{1},Conditions_OrderCell{TempFilePos,s},'IgnoreCase',true);
+                    end
                     CondPos = find(Condname_i == 1); Inverted = 1;
                 end
             else; CondPos = 1; 
@@ -546,7 +557,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
             close gcf
 
             % set double-precision parameter
-            pop_editoptions('option_single', 0);
+            pop_editoptions('option_single', 0,'option_computeica',1);
 
             % Import the .bdf file
             % SHOULD NEVER SPECIFY A REF CHAN FOR BIOSEMI (since BioSemi uses CMS-DRL which cannot be imported)
@@ -1034,10 +1045,13 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 WaitBarApp.Title = '1. PREPROCESSING: ICA computation';
 
                 % Running ICA decomposition with best algorithm so far (AMICA)
-                [W,S,mods] = runamica15(EEG.data,'outdir',...
-                    [Dir_load '\\AmicaResults\\' sprintf('Session%d',WhichCond)],...
-                    'max_iter',str2double(AnswerICA{:})); 
+%                 [W,S,mods] = runamica15(EEG.data,'outdir',...
+%                     [Dir_load '\\AmicaResults\\' sprintf('Session%d',WhichCond)],...
+%                     'max_iter',str2double(AnswerICA{:})); 
 
+                [W,S,mods] = runamica15(EEG.data,'max_iter',str2double(AnswerICA{:}));
+                rmdir('amicaouttmp', 's') % Removing the folder containg amica outputs (unneccessary) 
+                
                 % Storing amica results in EEG structure
                 EEG.icaweights = W;
                 EEG.icasphere = S(1:size(W,1),:);
@@ -1102,10 +1116,10 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
         for h=1:length(CurrentFile.FileList)
 
             % Restart EEGLAB
-            eeglab
-
-            % Closing EEGLAB GUI
-            close gcf
+            eeglab nogui
+            
+            % set double-precision parameter
+            pop_editoptions('option_single', 0,'option_computeica',1);
 
             %-----------------------------------------------------------------%    
             % Loading directory and templates
@@ -1139,6 +1153,9 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                     'filepath',Dir_save);
             end
             
+            % Sometimes EEG.icaact is empty
+            EEG = eeg_checkset(EEG);
+            
             % Waitbar updating 
             File = File + 1;
             WaitBarApp.Value = File/FilesToProcess;
@@ -1163,7 +1180,7 @@ if ~strcmpi(Extension,'.set') && strcmpi(Steps,'Preprocessing') || strcmpi(Steps
                 ICLabel = EEG.etc.ic_classification.ICLabel;
                 
                 % Retrieve results (pre-select all non-brain components)
-                Idx=1;
+                Idx=1; CompsToRej = [];
                 for l=1:size(EEG.icaact,1)
                     [~,CompType] = max(EEG.etc.ic_classification.ICLabel.classifications(l,:));
                     if CompType ~= 1 % Brain component, see EEG.etc.ic_classification.ICLabel.classes
@@ -1414,7 +1431,7 @@ if ~exist('Analysis','var')
     Analysis = 0;
 end
 
-if Analysis && strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both')
+if Analysis && (strcmpi(Steps,'Preprocessing') || strcmpi(Steps,'Both'))
         % Finally, here we perform the power spectra analysis on specific
         % frequency bands. At the same time, topoplots are exported in
         % specified folder. 

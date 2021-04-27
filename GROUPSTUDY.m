@@ -42,7 +42,7 @@ end
 
 % If creating new parameters and only running GroupStudy, the
 % MainWorkspace.mat might be missing. 
-if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
+if nnz(contains({ParametersPath.name},'MAINWorkspace.mat')) < 1
     % Get time and date
     CurrentDate = datenum(clock);
     
@@ -69,16 +69,22 @@ if nnz(contains({ParametersPath.name},'MainWorkspace.mat')) < 1
     end
 end
 
+% Find folder in Functions containing "eeglab" (may change name if update)
+Files = dir([CurrentPWD '\Functions\']);
+dirFlags = [Files.isdir];
+OnlyFolders = Files(dirFlags);
+Idx = contains(lower({OnlyFolders.name}),'eeglab');
+EEGLABFolder = [OnlyFolders(Idx).folder '\' OnlyFolders(Idx).name];
+
 % Adding path to dependencies
-addpath([pwd '\Functions\eeglab-develop']);
+addpath(EEGLABFolder);
 addpath([pwd '\Functions\']);
 addpath(genpath([pwd '\Functions\Dependencies']));
 addpath([pwd '\Functions\EEGInterp']); 
 
 % Need to intialize it otherwise it doesn't recognise std_editset
 STUDY = []; CURRENTSTUDY = 0; ALLEEG=[]; EEG=[]; CURRENTSET=[]; 
-eeglab
-close gcf
+eeglab nogui
 
 % This allows to process more datasets while only keeping 1 in memory! 
 pop_editoptions( 'option_storedisk',1);
@@ -117,9 +123,9 @@ end
 
 % Dataset to load
 if strcmpi(ICAexist,'Yes')
-    DatasetToLoad = Dataset_filtered_cleaned_ICAedRejected;
+    DatasetToLoad = Dataset_filtCleaned_ICAedRejected;
 else
-    DatasetToLoad = Dataset_filtered_cleaned;
+    DatasetToLoad = Dataset_filtCleaned;
 end
 
 % Only keeping subjects selected for analysis
@@ -196,16 +202,26 @@ for i=1:numel(FieldsBS)
             % NEED TO IMPROVE IT IF 2 WS FACTORS ! (1 should be session and
             % the second condition) ?
             CurrentFolder = Participant_load.(Groups_Names{i}).(FieldsBSSubj{l});
+            
+            % Retrieving list of .set files in current folder
+            SetFiles = dir([CurrentFolder.ExportPath '\*.set']);
+            
+            if strcmpi(ICAexist,'Yes')
+                SetFiles = SetFiles(contains({SetFiles.name},'ICAedRejected'));
+            else
+                SetFiles = SetFiles(contains({SetFiles.name},'filtered_cleaned') & ...
+                    ~contains({SetFiles.name},'ICAedRejected') & ~contains({SetFiles.name},'ICAed'));
+            end
 
             % Finding current subject export name
-            CurrentSession = CurrentFolder.FileList{m};
-            CurrentSession = strsplit(CurrentSession,'.');
-            SubjName = strtok(CurrentSession{1},FileNames);
-            % If there is no file specific name
-            if sum(isstrprop(SubjName,'digit'))>0
-                Temp = strsplit(CurrentFolder.Path{:},'\');
-                SubjName = [Temp{end} '_'];
-            end
+%             CurrentSession = CurrentFolder.FileList{m};
+%             CurrentSession = strsplit(CurrentSession,'.');
+%             SubjName = strtok(CurrentSession{1},FileNames);
+%             % If there is no file specific name
+%             if sum(isstrprop(SubjName,'digit'))>0
+%                 Temp = strsplit(CurrentFolder.Path{:},'\');
+%                 SubjName = [Temp{end} '_'];
+%             end
             
              % Update waitbar
              WaitBarApp.Value = Increment/length(TempList);
@@ -213,10 +229,15 @@ for i=1:numel(FieldsBS)
                 length(Subjectslist),CurrentFolder.CondAssign{WhichCond});
 
             % Loading each dataset
-            [STUDY ALLEEG] = std_editset( STUDY, ALLEEG,'name', StudyName, 'commands',...
-            {{'index' Increment 'load' [CurrentFolder.ExportPath '\' sprintf(DatasetToLoad, SubjName, WhichCond) '.set'] ...
+%             [STUDY ALLEEG] = std_editset(STUDY, ALLEEG,'name', StudyName, 'commands',...
+%             {{'index' Increment 'load' [CurrentFolder.ExportPath '\' sprintf(DatasetToLoad, SubjName, WhichCond) '.set'] ...
+%             'subject' num2str(ParticipantNumber{:}) 'session' WhichCond 'condition' Conditions_Names{WhichCond} 'group' FieldsBS{i}}},...  
+%             'updatedat','off','rmclust','on' );      
+        
+            [STUDY ALLEEG] = std_editset(STUDY, ALLEEG,'name', StudyName, 'commands',...
+            {{'index' Increment 'load' [CurrentFolder.ExportPath '\' SetFiles(m).name] ...
             'subject' num2str(ParticipantNumber{:}) 'session' WhichCond 'condition' Conditions_Names{WhichCond} 'group' FieldsBS{i}}},...  
-            'updatedat','off','rmclust','on' );           
+            'updatedat','off','rmclust','on' );  
              Increment=Increment+1;
         end
     end
@@ -299,92 +320,91 @@ end
 % Retrieve Channels Labels
 ChannelsLabels={ALLEEG(1).chanlocs.labels};
 
-% % Selecting which design to compute analysis on 
-% STUDY = std_selectdesign(STUDY, ALLEEG, x);
+if strcmpi(FreqBandsAnalyses,'yes')
 
-% Retrieve frequency bins
-FreqRanges = cell2mat(cellfun(@(x) str2num(x), FreqData(:,2),'UniformOutput',0));
+    % Retrieve frequency bins
+    FreqRanges = cell2mat(cellfun(@(x) str2num(x), FreqData(:,2),'UniformOutput',0));
 
-% Define the boundaries based on LowPass if defined or freq bins
-if nnz(LowPass)>0
-    ImportFreqRange = [0 LowPass];
-elseif nnz(FreqRanges)>0
-    ImportFreqRange = [0 max(FreqRanges(:,2))];
-else
-    ImportFreqRange = [];
-end
-
-% Update progress
-WaitBarApp.Value = 2/3;
-WaitBarApp.Message = 'Precompute power spectra';
-
-% Precompute Channel Power Spectra
-[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','off',...
-    'specparams',{'specmode','psd','logtrials','off'});
-
-% Save STUDY
-[STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
-'filepath',[SavePath '\STUDY\' Date_Start '\']);
-
-%% PLOT POWER SPECTRA 
-
-% Update progress
-WaitBarApp.Value = 3/3;
-WaitBarApp.Message = 'Plot subjects power spectra';
-
-% Reading spectral data (precomputed)
-try % Sometimes files get corrupted for unknown reasons
-    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
-    
-catch
-    % Precompute Channel Power Spectra
-    [STUDY,ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
-        'specparams',{'specmode','psd','logtrials','off'});
-    [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
-        ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
-end
-
-% Saving spectral data and statistics in a .mat file
-save([SavePath '\STUDY\' Date_Start '\SpectralData.mat'],'SpectData');
-
-% SpecData structure is based on STUDY.design.cell order !!!!! 
-% Thus, changing the order of STUDY.group! 
-STUDY.group = unique({STUDY.datasetinfo.group},'stable');
-
-% Plotting subjects boxplots to identify potential outliers
-Pos = 1;
-for p=1:length(STUDY.group)
-    Dat = []; Color = [];GrpLab = {};
-    
-    % For each condition
-    for m=1:length(STUDY.condition)
-        
-        % Build data for plotting
-        Dat = [Dat;reshape(squeeze(mean(SpectData{p,m},2)),[size(SpectData{p,m},1)*size(SpectData{p,m},3),1])];
-        Color = [Color;repmat(STUDY.condition(m),size(Dat,1)/m,1)];
-        
-        % Groups labels
-        for n=1:size(SpectData{p,m},3)
-           GrpLab = [GrpLab;repmat({sprintf('P%s',STUDY.datasetinfo(Pos).subject)},...
-               size(SpectData{p,m},1),1)];
-           Pos = Pos + 1;
-        end
-       
+    % Define the boundaries based on LowPass if defined or freq bins
+    if nnz(LowPass)>0
+        ImportFreqRange = [0 LowPass];
+    elseif nnz(FreqRanges)>0
+        ImportFreqRange = [0 max(FreqRanges(:,2))];
+    else
+        ImportFreqRange = [];
     end
-        
-    % Plotting with GRAMM
-    Graph=gramm('x',GrpLab,'y',Dat,'color',Color);
-    Graph.stat_boxplot(); % 'width',0.1,'dodge',0.1
-    Graph.set_names('x','','y','10*Log10(\muV^2/Hz)','color','Conditions'); 
-    Graph.set_title(STUDY.group{p});
-    figure('units','normalized','outerposition',[0 0 1 1]); Graph.draw();
-    clear Graph
 
-    % Channels-averaged data
-    SaveFigures(gcf,[SavePath '\STUDY\' Date_Start '\' sprintf('ChanAVG_%s_%s',...
-        STUDY.group{p},STUDY.name)],'w','bmp');
-end
+    % Update progress
+    WaitBarApp.Value = 2/3;
+    WaitBarApp.Message = 'Precompute power spectra';
+
+    % Precompute Channel Power Spectra
+    [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','off',...
+        'specparams',{'specmode','psd','logtrials','off'});
+
+    % Save STUDY
+    [STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
+    'filepath',[SavePath '\STUDY\' Date_Start '\']);
+
+    %% PLOT POWER SPECTRA 
+
+    % Update progress
+    WaitBarApp.Value = 3/3;
+    WaitBarApp.Message = 'Plot subjects power spectra';
+
+    % Reading spectral data (precomputed)
+    try % Sometimes files get corrupted for unknown reasons
+        [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+            ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
+
+    catch
+        % Precompute Channel Power Spectra
+        [STUDY,ALLEEG] = std_precomp(STUDY, ALLEEG,'channels','spec','on','recompute','on',...
+            'specparams',{'specmode','psd','logtrials','off'});
+        [STUDY,SpectData,SpectFreqs] =  std_readdata (STUDY, ALLEEG,'channels',...
+            ChannelsLabels,'datatype','spec','freqrange',ImportFreqRange);
+    end
+
+    % Saving spectral data and statistics in a .mat file
+    save([SavePath '\STUDY\' Date_Start '\SpectralData.mat'],'SpectData');
+
+    % SpecData structure is based on STUDY.design.cell order !!!!! 
+    % Thus, changing the order of STUDY.group! 
+    STUDY.group = unique({STUDY.datasetinfo.group},'stable');
+
+    % Plotting subjects boxplots to identify potential outliers
+    Pos = 1;
+    for p=1:length(STUDY.group)
+        Dat = []; Color = [];GrpLab = {};
+
+        % For each condition
+        for m=1:length(STUDY.condition)
+
+            % Build data for plotting
+            Dat = [Dat;reshape(squeeze(mean(SpectData{p,m},2)),[size(SpectData{p,m},1)*size(SpectData{p,m},3),1])];
+            Color = [Color;repmat(STUDY.condition(m),size(Dat,1)/m,1)];
+
+            % Groups labels
+            for n=1:size(SpectData{p,m},3)
+               GrpLab = [GrpLab;repmat({sprintf('P%s',STUDY.datasetinfo(Pos).subject)},...
+                   size(SpectData{p,m},1),1)];
+               Pos = Pos + 1;
+            end
+
+        end
+
+        % Plotting with GRAMM
+        Graph=gramm('x',GrpLab,'y',Dat,'color',Color);
+        Graph.stat_boxplot(); % 'width',0.1,'dodge',0.1
+        Graph.set_names('x','','y','10*Log10(\muV^2/Hz)','color','Conditions'); 
+        Graph.set_title(STUDY.group{p});
+        figure('units','normalized','outerposition',[0 0 1 1]); Graph.draw();
+        clear Graph
+
+        % Channels-averaged data
+        SaveFigures(gcf,[SavePath '\STUDY\' Date_Start '\' sprintf('ChanAVG_%s_%s',...
+            STUDY.group{p},STUDY.name)],'w','bmp');
+    end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     STEP 1 : STATISTICS on ALL DATA (channels X frequencies)
@@ -396,7 +416,6 @@ end
 % ON COLUMN/LINES STRUCTURE OF DATA.
 % --> Should use same structure as eeglab stats function require! 
 
-if strcmpi(FreqBandsAnalyses,'yes')
     
     % Update progress
     WaitBarApp.Value = 1/(2+size(FreqData,1));
@@ -651,6 +670,11 @@ if strcmpi(FreqBandsAnalyses,'yes')
             'AvgFreqs','exportpath',[SavePath '\STUDY\' Date_Start '\'],'freqdata',...
             FreqData(k,:),'alphathresh',AlphaThresh);   
     end
+else
+   
+     % Save STUDY
+    [STUDY EEG] = pop_savestudy( STUDY, EEG, 'filename',[StudyName '.study'],...
+    'filepath',[SavePath '\STUDY\' Date_Start '\']);
 end
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                            MICROSTATES ANALYSES
@@ -674,16 +698,20 @@ if strcmpi(ICclusteringSwitch,'Yes') && strcmpi(ICAexist,'Yes')
     [STUDY ALLEEG] = std_precomp(STUDY, ALLEEG,'components','spec','on','scalp','on',...
     'recompute','on','specparams',{'specmode' 'psd','logtrials','off'});
 
+    % NEW METHOD! 
+    % Calculates pre-clustering measures (pairwise component similarity matrices)
+    STUDY = std_mpreclust(STUDY,ALLEEG, {'dipole' ,'spec' ,'map'}, true);
+
     % Create preclustering array
-    [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
-        'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
-        { 'dipoles' 'norm' 1 'weight' 10 });
-    
-    % THERE ARE CONFLICTS BETWEEN THE MPT Toolbox and std_stat function:
-    % https://github.com/sccn/eeglab/issues/184
-    % One solution would be to add the path of MPT only in ICClust? 
-    LogICCLust = ICClustLocalisation(STUDY,ALLEEG,'ExportPath',[SavePath '\Exports\' Date_Start '\ICClust\'],...
-        'ExcelDirectory',[ExcelDirectory '\' Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
+%     [STUDY,ALLEEG] = std_preclust(STUDY,ALLEEG,[],{ 'spec'  'npca' 10 'norm' 1 ...
+%         'weight' 1},{ 'scalp' 'npca' 10 'norm' 1 'weight' 1 'abso' 1 },...
+%         { 'dipoles' 'norm' 1 'weight' 10 });
+%     
+%     % THERE ARE CONFLICTS BETWEEN THE MPT Toolbox and std_stat function:
+%     % https://github.com/sccn/eeglab/issues/184
+%     % One solution would be to add the path of MPT only in ICClust? 
+%     LogICCLust = ICClustLocalisation(STUDY,ALLEEG,'ExportPath',[SavePath '\Exports\' Date_Start '\ICClust\'],...
+%         'ExcelDirectory',[ExcelDirectory '\' Date_Start],'AllParameters',ICClustParam); % ,'GUI',WaitBarApp
 end
 
 %% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
